@@ -63,15 +63,166 @@ task.wait(0.3)
 -- =============================
 --    SERVICES
 -- =============================
-local Players           = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local cloneref = (cloneref or clonereference or function(instance) return instance end)
+local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+
+local WindUI
+do
+    local ok, result = pcall(function()
+        return require("./src/Init")
+    end)
+    
+    if ok then
+        WindUI = result
+    else 
+        if cloneref(game:GetService("RunService")):IsStudio() then
+            WindUI = require(cloneref(ReplicatedStorage:WaitForChild("WindUI"):WaitForChild("Init")))
+        else
+            WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"))()
+        end
+    end
+end
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService        = game:GetService("RunService")
-local UserInputService  = game:GetService("UserInputService")
-local TweenService      = game:GetService("TweenService")
-local HttpService       = game:GetService("HttpService")
-local CoreGui           = game:GetService("CoreGui")
-local LocalPlayer       = Players.LocalPlayer
-local isMobile          = UserInputService.TouchEnabled
+local isMobile = game:GetService("UserInputService").TouchEnabled
+local net = ReplicatedStorage:WaitForChild("Packages", 10):WaitForChild("_Index", 10):WaitForChild("sleitnick_net@0.2.0",
+    10):WaitForChild("net", 10)
+local remotes = net:GetChildren()
+local function GetServerRemote(targetName)
+    local allRemotes = net:GetChildren()
+    for i, remote in ipairs(allRemotes) do
+        if remote.Name == targetName then
+            -- Mengambil urutan berikutnya (Index + 1)
+            local actualRemote = allRemotes[i + 1]
+            return actualRemote
+        end
+    end
+    return nil
+end
+
+local function GetServerRemoteReverse(targetName)
+    local allRemotes = net:GetChildren()
+    for i, remote in ipairs(allRemotes) do
+        if remote.Name == targetName then
+            -- Mengambil urutan berikutnya (Index + 1)
+            local actualRemote = allRemotes[i - 1]
+            return actualRemote
+        end
+    end
+    return nil
+end
+
+print("remotes length: " .. #remotes)
+
+local Connections = {}
+local Events = {}
+local mutationTarget = {}
+local Tasks = {}
+local lastTimeFishCaught
+local magix = -2
+
+if #remotes ~= 323 then
+    magix = 0
+end
+
+_G.SavedData = _G.SavedData or {
+    FishCaught = {},
+    CaughtVisual = {},
+    FishNotif = {}
+}
+local function FireLocalEvent(remote, ...)
+    local args = {...}
+    local signal = remote.OnClientEvent
+    -- Mencari koneksi lokal yang sedang mendengarkan remote ini
+    for _, connection in pairs(getconnections(signal)) do
+        if connection.Function then
+            task.spawn(function()
+                connection.Function(unpack(args))
+            end)
+        end
+    end
+end
+local function printTable(tbl, indent)
+    indent = indent or 0
+    local spacing = string.rep("  ", indent)
+
+    for key, value in pairs(tbl) do
+        if type(value) == "table" then
+            print(spacing .. tostring(key) .. " = {")
+            printTable(value, indent + 1)
+            print(spacing .. "}")
+        else
+            print(spacing .. tostring(key) .. " = " .. tostring(value))
+        end
+    end
+end
+local saveCount = 0
+local function HookRemote(humanName, storageKey)
+    local remote = GetServerRemote(humanName)
+    if remote then
+        remote.OnClientEvent:Connect(function(...)
+          if saveCount < 7 then
+            _G.SavedData[storageKey] = {...}
+            --print("Ã°Å¸âÂ¥ Data captured for: " .. humanName)
+            --printTable({...})
+            local args = {...}
+            if storageKey == "CaughtVisual" and tostring(args[1]) == tostring(LocalPlayer.Name)  then
+                saveCount = saveCount + 1
+                -- print(LocalPlayer.Name)
+               
+            end
+            
+          end
+          -- saved = true
+        end)
+        return true
+    end
+    return false
+end
+
+print(len)
+
+
+local Controllers
+local NotificationController
+local GiftingController
+local TextNotificationController
+local VFXController
+local CutsceneController
+local ControlModule
+local FishingController
+local AFKController
+local PromptController
+local BackpackController
+local Replion
+local PlayerData
+local ItemUtility
+local TierUtility
+
+if isMobile then
+    Controllers = ReplicatedStorage:WaitForChild("Controllers")
+    NotificationController = require(Controllers:WaitForChild("NotificationController"))
+    GiftingController = require(Controllers:WaitForChild("GiftingController"))
+    TextNotificationController = require(Controllers:WaitForChild("TextNotificationController"))
+    VFXController = require(Controllers:WaitForChild("VFXController"))
+    FishingController = require(Controllers:WaitForChild("FishingController"))
+    AFKController = require(Controllers:WaitForChild("AFKController"))
+    PromptController = require(Controllers:WaitForChild("PromptController"))
+    BackpackController = require(Controllers:WaitForChild("BackpackController"))
+    CutsceneController = require(Controllers:WaitForChild("CutsceneController"))
+    Replion = require(ReplicatedStorage.Packages.Replion)
+    PlayerData = Replion.Client:WaitReplion("Data")
+    ControlModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
+    Promise = require(ReplicatedStorage:WaitForChild("Packages").Promise)
+    ItemUtility = require(ReplicatedStorage.Shared.ItemUtility)
+    TierUtility = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("TierUtility"))
+    print("mobile")
+else
+    print("Ã°Å¸âÂ» Player menggunakan PC / Laptop")
+end
 
 -- =============================
 --    NOTIFY HELPER
