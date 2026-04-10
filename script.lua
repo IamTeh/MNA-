@@ -5,9 +5,9 @@
     ██║╚██╔╝██║██║╚██╗██║██╔══██║    ██╔══██║██║   ██║██╔══██╗
     ██║ ╚═╝ ██║██║ ╚████║██║  ██║    ██║  ██║╚██████╔╝██████╔╝
     ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
-    Hub  : MNA HUB V11.3 (FIXED)
+    Hub  : MNA HUB V11.3 (TEHXNICH)
     UI   : Rayfield (Ocean Theme)
-    Game : Fisch (Roblox)
+    Support : Fishit (Roblox)
 ]]
 
 -- =============================
@@ -34,7 +34,7 @@ local Window = Rayfield:CreateWindow({
     Name            = "MNA HUB V11.3",
     Icon            = 0,
     LoadingTitle    = "MNA HUB",
-    LoadingSubtitle = "V11.3 | Fisch Hub",
+    LoadingSubtitle = "V11.3 | Fishit Hub",
     Theme           = "Ocean",
     DisableRayfieldPrompts = false,
     DisableBuildWarnings   = true,
@@ -53,7 +53,7 @@ task.wait(0.5)
 local InfoTab      = Window:CreateTab("🧿 Info",      4483362458)
 local PlayersTab   = Window:CreateTab("👥 Players",   4483362458)
 local MainTab      = Window:CreateTab("🌐 Backpack",      4483362458)
-local ExclusiveTab = Window:CreateTab("🪝 Fishing", 4483362458)
+local ExclusiveTab = Window:CreateTab("⚡ Fishing", 4483362458)
 local TeleportTab  = Window:CreateTab("🗺️ Teleport",  4483362458)
 local ShopTab      = Window:CreateTab("🛒 Shop",      4483362458)
 local MiscTab      = Window:CreateTab("🔗 Misc",      4483362458)
