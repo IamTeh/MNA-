@@ -50,13 +50,13 @@ task.wait(0.5)
 -- =============================
 --    TABS
 -- =============================
-local InfoTab      = Window:CreateTab("⚡ Info",      4483362458)
-local PlayersTab   = Window:CreateTab("👤 Players",   4483362458)
-local MainTab      = Window:CreateTab("⚙️ Main",      4483362458)
-local ExclusiveTab = Window:CreateTab("🎣 Exclusive", 4483362458)
+local InfoTab      = Window:CreateTab("🧿 Info",      4483362458)
+local PlayersTab   = Window:CreateTab("👥 Players",   4483362458)
+local MainTab      = Window:CreateTab("🌐 Backpack",      4483362458)
+local ExclusiveTab = Window:CreateTab("🪝 Fishing", 4483362458)
 local TeleportTab  = Window:CreateTab("🗺️ Teleport",  4483362458)
 local ShopTab      = Window:CreateTab("🛒 Shop",      4483362458)
-local MiscTab      = Window:CreateTab("🔧 Misc",      4483362458)
+local MiscTab      = Window:CreateTab("🔗 Misc",      4483362458)
 
 task.wait(0.3)
 
@@ -291,7 +291,7 @@ local Config = {
         Remotes  = {},
         Stats    = { castCount = 0, startTime = 0 }
     },
-    amblatant        = false,
+    mnblantat        = false,
     antiOKOK         = false,
     autoFishing      = false,
     SpeedHackValue   = 60,
@@ -875,7 +875,7 @@ InfoTab:CreateButton({
 task.wait(0.1)
 
 InfoTab:CreateButton({
-    Name     = "📊 Cek Status Remote",
+    Name     = "🔎 Cek Status Remote",
     Callback = function()
         local loaded = 0
         local failed = 0
