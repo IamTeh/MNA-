@@ -4,7 +4,7 @@
 
 local ValidKeys = {
     {key = "MNA-1111-AAAA", id = 8883763698},
-    {key = "MNA-2222-BBBB", id = 9793848250},
+    {key = "MNA-2222-BBBB", id = 9993144114},
 }
 
 -- Player ganti bagian ini dengan key mereka
