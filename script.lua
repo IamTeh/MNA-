@@ -5,7 +5,7 @@
     ██║╚██╔╝██║██║╚██╗██║██╔══██║    ██╔══██║██║   ██║██╔══██╗
     ██║ ╚═╝ ██║██║ ╚████║██║  ██║    ██║  ██║╚██████╔╝██████╔╝
     ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
-    Hub     : MNA HUB V11.3 FIXED
+    Hub     : MNA HUB V11.3 TEHXNICH
     UI      : Rayfield 
     Support : Fish (Roblox)
     Fix     : Remote system by GetServerRemote
@@ -36,7 +36,7 @@ local Window = Rayfield:CreateWindow({
     Icon            = 0,
     LoadingTitle    = "MNA HUB",
     LoadingSubtitle = "V11.3 | Fish Hub",
-    Theme           = "Ocean",
+    Theme           = "byTeh",
     DisableRayfieldPrompts = false,
     DisableBuildWarnings   = true,
     ConfigurationSaving = {
@@ -51,13 +51,13 @@ task.wait(0.5)
 -- =============================
 --    TABS
 -- =============================
-local InfoTab      = Window:CreateTab("🧿 Info",      4483362458)
-local PlayersTab   = Window:CreateTab("👥 Players",   4483362458)
-local MainTab      = Window:CreateTab("🌐 Backpack",  4483362458)
-local ExclusiveTab = Window:CreateTab("⚡ Fishing",   4483362458)
-local TeleportTab  = Window:CreateTab("🗺️ Teleport",  4483362458)
-local ShopTab      = Window:CreateTab("🛒 Shop",      4483362458)
-local MiscTab      = Window:CreateTab("🔗 Misc",      4483362458)
+local InfoTab      = Window:CreateTab(" Info",      4483362458)
+local PlayersTab   = Window:CreateTab(" Players",   4483362458)
+local MainTab      = Window:CreateTab(" Backpack",  4483362458)
+local ExclusiveTab = Window:CreateTab(" Fishing",   4483362458)
+local TeleportTab  = Window:CreateTab(" Teleport",  4483362458)
+local ShopTab      = Window:CreateTab(" Shop",      4483362458)
+local MiscTab      = Window:CreateTab(" Misc",      4483362458)
 
 task.wait(0.3)
 
@@ -231,7 +231,7 @@ local Config = {
         Active   = false,
         Settings = { CompleteDelay = 3.7, CancelDelay = 0.3 },
         Remotes  = {},
-        Stats    = { castCount = 5, startTime = 2 }
+        Stats    = { castCount = 5, startTime = 0.0 }
     },
     amblatant        = false, -- FIX: was mnblatant
     antiOKOK         = false,
@@ -258,13 +258,13 @@ local needCast = true
 local skip     = false
 local isCaught = false
 local lastTimeFishCaught = nil
-local blatantFishCycleCount = 0
+local blatantFishCycleCount = 1
 local saveCount = 0
 
 _G.SavedData = _G.SavedData or {
-    FishCaught   = {4},
+    FishCaught   = {1},
     CaughtVisual = {4},
-    FishNotif    = {4}
+    FishNotif    = {8}
 }
 
 -- =============================
@@ -502,10 +502,10 @@ local function onToggleUB(value)
     if value then
         Config.HookNotif = true
         equipRod()
-        task.wait(4)
-        UB_start(0.5)
+        task.wait()
+        UB_start(0.1)
     else
-        UB_stop(1.5)
+        UB_stop(5.5)
         Config.HookNotif = false
     end
 end
@@ -518,11 +518,11 @@ task.spawn(function()
         task.wait(5)
         if Config.UB.Active
         and lastTimeFishCaught ~= nil
-        and os.clock() - lastTimeFishCaught >= 15
+        and os.clock() - lastTimeFishCaught >= 20
         and blatantFishCycleCount > 1 then
             needCast = true
             saveCount = 0
-            blatantFishCycleCount = 0
+            blatantFishCycleCount = 1
             lastTimeFishCaught = os.clock()
             onToggleUB(false)
             task.wait(1)
@@ -1354,9 +1354,10 @@ ExclusiveTab:CreateToggle({
     Callback     = function(val)
         -- FIX: Config.amblatant (bukan mnblatant)
         Config.amblatant = val
-        saveCount = 0
+        saveCount = 1
         HookRemote("RE/FishCaught",                  "FishCaught")
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
+        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         needCast = true
         onToggleUB(val)
