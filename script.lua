@@ -231,7 +231,7 @@ local Config = {
         Active   = false,
         Settings = { CompleteDelay = 3.7, CancelDelay = 0.3 },
         Remotes  = {},
-        Stats    = { castCount = 0, startTime = 0 }
+        Stats    = { castCount = 5, startTime = 2 }
     },
     amblatant        = false, -- FIX: was mnblatant
     antiOKOK         = false,
@@ -262,9 +262,9 @@ local blatantFishCycleCount = 0
 local saveCount = 0
 
 _G.SavedData = _G.SavedData or {
-    FishCaught   = {},
-    CaughtVisual = {},
-    FishNotif    = {}
+    FishCaught   = {4},
+    CaughtVisual = {4},
+    FishNotif    = {4}
 }
 
 -- =============================
@@ -479,7 +479,7 @@ local function UB_start()
     needCast = true
     Config.UB.Stats.startTime = tick()
     Tasks.ubtask = task.spawn(ub_loop)
-    NotifySuccess("Ultra Blatant", "Aktif! ⚡")
+    NotifySuccess("Ultra Blatant", "Aktif! ")
 end
 
 local function UB_stop()
@@ -502,10 +502,10 @@ local function onToggleUB(value)
     if value then
         Config.HookNotif = true
         equipRod()
-        task.wait(0.5)
-        UB_start()
+        task.wait(4)
+        UB_start(0.5)
     else
-        UB_stop()
+        UB_stop(1.5)
         Config.HookNotif = false
     end
 end
@@ -518,7 +518,7 @@ task.spawn(function()
         task.wait(5)
         if Config.UB.Active
         and lastTimeFishCaught ~= nil
-        and os.clock() - lastTimeFishCaught >= 10
+        and os.clock() - lastTimeFishCaught >= 15
         and blatantFishCycleCount > 1 then
             needCast = true
             saveCount = 0
@@ -2049,7 +2049,7 @@ MiscTab:CreateButton({
 task.wait(0.5)
 
 Rayfield:Notify({
-    Title    = "⚡ MNA HUB V11.3 FIXED",
+    Title    = " MNA HUB V11.3 ",
     Content  = "Remotes loaded: "..loadedCount.." | Script siap! 🎣",
     Duration = 5,
     Image    = 4483362458,
