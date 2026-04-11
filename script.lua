@@ -5,9 +5,9 @@
     ██║╚██╔╝██║██║╚██╗██║██╔══██║    ██╔══██║██║   ██║██╔══██╗
     ██║ ╚═╝ ██║██║ ╚████║██║  ██║    ██║  ██║╚██████╔╝██████╔╝
     ╚═╝     ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝    ╚═╝  ╚═╝ ╚═════╝ ╚═════╝
-    Hub     : MNA HUB V11.3 FIXED
-    UI      : Rayfield (Ocean Theme)
-    Support : Fisch (Roblox)
+    Hub     : MNA HUB V11.3 TEHXNICH
+    UI      : Rayfield 
+    Support : Fish (Roblox)
     Fix     : Remote system by GetServerRemote
 ]]
 
@@ -32,11 +32,11 @@ end
 task.wait(1)
 
 local Window = Rayfield:CreateWindow({
-    Name            = "MNA HUB V11.3",
+    Name            = "MNA HUBV11.3",
     Icon            = 0,
-    LoadingTitle    = "MNA HUB",
-    LoadingSubtitle = "V11.3 | Fisch Hub",
-    Theme           = "Ocean",
+    LoadingTitle    = "WILZ SAYANG FATEH",
+    LoadingSubtitle = "V11.3 | Fish Hub",
+    Theme           = "byTeh",
     DisableRayfieldPrompts = false,
     DisableBuildWarnings   = true,
     ConfigurationSaving = {
@@ -51,13 +51,13 @@ task.wait(0.5)
 -- =============================
 --    TABS
 -- =============================
-local InfoTab      = Window:CreateTab("🧿 Info",      4483362458)
-local PlayersTab   = Window:CreateTab("👥 Players",   4483362458)
-local MainTab      = Window:CreateTab("🌐 Backpack",  4483362458)
-local ExclusiveTab = Window:CreateTab("⚡ Fishing",   4483362458)
-local TeleportTab  = Window:CreateTab("🗺️ Teleport",  4483362458)
-local ShopTab      = Window:CreateTab("🛒 Shop",      4483362458)
-local MiscTab      = Window:CreateTab("🔗 Misc",      4483362458)
+local InfoTab      = Window:CreateTab(" Info",      4483362458)
+local PlayersTab   = Window:CreateTab(" Players",   4483362458)
+local MainTab      = Window:CreateTab(" Backpack",  4483362458)
+local ExclusiveTab = Window:CreateTab(" Fishing",   4483362458)
+local TeleportTab  = Window:CreateTab(" Teleport",  4483362458)
+local ShopTab      = Window:CreateTab(" Shop",      4483362458)
+local MiscTab      = Window:CreateTab(" Misc",      4483362458)
 
 task.wait(0.3)
 
@@ -89,7 +89,7 @@ local function NotifyWarning(title, msg, dur)
 end
 
 -- =============================
---    NET FOLDER (FIXED - sistem temanmu)
+--    NET FOLDER 
 -- =============================
 local cloneref = (cloneref or clonereference or function(i) return i end)
 
@@ -124,7 +124,7 @@ local function GetServerRemoteReverse(targetName)
     return nil
 end
 
--- Alias agar sisa script tetap kompatibel
+-- game berjalan 
 local function getRemote(name)
     return GetServerRemote(name)
 end
@@ -231,7 +231,7 @@ local Config = {
         Active   = false,
         Settings = { CompleteDelay = 3.7, CancelDelay = 0.3 },
         Remotes  = {},
-        Stats    = { castCount = 0, startTime = 0 }
+        Stats    = { castCount = 5, startTime = 0.0 }
     },
     amblatant        = false, -- FIX: was mnblatant
     antiOKOK         = false,
@@ -258,13 +258,13 @@ local needCast = true
 local skip     = false
 local isCaught = false
 local lastTimeFishCaught = nil
-local blatantFishCycleCount = 0
+local blatantFishCycleCount = 1
 local saveCount = 0
 
 _G.SavedData = _G.SavedData or {
-    FishCaught   = {},
-    CaughtVisual = {},
-    FishNotif    = {}
+    FishCaught   = {1},
+    CaughtVisual = {4},
+    FishNotif    = {8}
 }
 
 -- =============================
@@ -453,12 +453,8 @@ local function ub_loop()
                                 FireLocalEvent(xr, unpack(_G.SavedData.CaughtVisual))
                             end
                             xr = GetServerRemote("RE/ObtainedNewFishNotification")
-                            if notifRemote and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
-                                local notifData = _G.SavedData.FishNotif
-                                if notifData[1] and type(notifData[1]) == "table" then
-                                    notifData[1].CustomDuration = 6 -- 6 detik = rolling 6 notif
-                                end
-                                FireLocalEvent(notifRemote, unpack(notifData))
+                            if xr and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
+                                FireLocalEvent(xr, unpack(_G.SavedData.FishNotif))
                             end
                         end)
                         isCaught = false
@@ -483,7 +479,7 @@ local function UB_start()
     needCast = true
     Config.UB.Stats.startTime = tick()
     Tasks.ubtask = task.spawn(ub_loop)
-    NotifySuccess("Ultra Blatant", "Aktif! ⚡")
+    NotifySuccess("Ultra Blatant", "Aktif! ")
 end
 
 local function UB_stop()
@@ -506,10 +502,10 @@ local function onToggleUB(value)
     if value then
         Config.HookNotif = true
         equipRod()
-        task.wait(0.5)
-        UB_start()
+        task.wait()
+        UB_start(2.5)
     else
-        UB_stop()
+        UB_stop(10.1)
         Config.HookNotif = false
     end
 end
@@ -522,11 +518,11 @@ task.spawn(function()
         task.wait(5)
         if Config.UB.Active
         and lastTimeFishCaught ~= nil
-        and os.clock() - lastTimeFishCaught >= 10
+        and os.clock() - lastTimeFishCaught >= 20
         and blatantFishCycleCount > 1 then
             needCast = true
-            saveCount = 0
-            blatantFishCycleCount = 0
+            saveCount = 1
+            blatantFishCycleCount = 1
             lastTimeFishCaught = os.clock()
             onToggleUB(false)
             task.wait(1)
@@ -798,25 +794,25 @@ end)
 
 -- ====== INFO TAB ======
 task.wait(0.2)
-InfoTab:CreateSection("⚡ MNA HUB V11.3")
+InfoTab:CreateSection(" MNA HUB V11.3")
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
-    Title   = "Tentang MNA HUB",
-    Content = "MNA HUB V11.3 - Script Fisch lengkap. Auto Fish, Teleport, Enchant, Mining, Totem, dan banyak lagi! Remote system fixed.",
+    Title   = "ABOUT MNA HUB",
+    Content = "MNA HUB V11.3 - Script Fisch lengkap. Auto Fish, Teleport, Enchant, Mining, Totem, dan banyak lagi! @BYIAMTEH.",
 })
 
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
-    Title   = "⚠️ Disclaimer",
-    Content = "Risiko penggunaan sepenuhnya tanggung jawab pengguna. Gunakan dengan bijak.",
+    Title   = "ABOUT MNA",
+    Content = "SCRIPT FREEE NOT SELL.NEW11/4/26.",
 })
 
 task.wait(0.1)
 
 InfoTab:CreateButton({
-    Name     = "🔄 Reload Remotes",
+    Name     = "Reload Remotes",
     Callback = function()
         local l, f = loadRemotes()
         UB_init()
@@ -1299,18 +1295,18 @@ ExclusiveTab:CreateSection("Ultra Blatant Fishing")
 task.wait(0.1)
 
 local rodSettings = {
-    ["0. 3 NOTIF KEDIP"]      = { CompleteDelay = 2.998 },
-    ["1. Diamond / Element"]  = { CompleteDelay = 3.7   },
-    ["2. 3 NOTIF"]            = { CompleteDelay = 2.890 },
-    ["3. GF / Bambu"]         = { CompleteDelay = 3.7   },
-    ["4. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
+    ["1. 3 NOTIF KEDIP"]      = { CompleteDelay = 2.998 },
+    ["2. Diamond / Element"]  = { CompleteDelay = 3.7   },
+    ["3. 3 NOTIF"]            = { CompleteDelay = 2.890 },
+    ["4. GF / Bambu"]         = { CompleteDelay = 3.7   },
+    ["5. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
 }
 local rodSettingNames = {}
 for name in pairs(rodSettings) do table.insert(rodSettingNames, name) end
 table.sort(rodSettingNames)
 
 ExclusiveTab:CreateDropdown({
-    Name          = "Settings Template",
+    Name          = "Template",
     Options       = rodSettingNames,
     CurrentOption = {"1. Diamond / Element"},
     Flag          = "UBTemplate",
@@ -1340,7 +1336,7 @@ ExclusiveTab:CreateInput({
 task.wait(0.1)
 
 ExclusiveTab:CreateToggle({
-    Name         = "Ultra Blatant 3N",
+    Name         = " Blatant 3N[BETA]",
     CurrentValue = false,
     Flag         = "UltraBlatant",
     Callback     = function(val)
@@ -1352,17 +1348,17 @@ ExclusiveTab:CreateToggle({
 task.wait(0.1)
 
 ExclusiveTab:CreateToggle({
-    Name         = "2N Real + Visual (Amblatant)",
+    Name         = " Amblatant",
     CurrentValue = false,
     Flag         = "Amblatant",
     Callback     = function(val)
         -- FIX: Config.amblatant (bukan mnblatant)
         Config.amblatant = val
-        saveCount = 0
+        saveCount = 1
         HookRemote("RE/FishCaught",                  "FishCaught")
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
-        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
-        needCast = true
+        HookRemote("RE/ObtainedNewFishNotification", "FishNotif"
+          needCast = true
         onToggleUB(val)
     end,
 })
@@ -2053,7 +2049,7 @@ MiscTab:CreateButton({
 task.wait(0.5)
 
 Rayfield:Notify({
-    Title    = "⚡ MNA HUB V11.3 FIXED",
+    Title    = " MNA HUB V11.3 ",
     Content  = "Remotes loaded: "..loadedCount.." | Script siap! 🎣",
     Duration = 5,
     Image    = 4483362458,
