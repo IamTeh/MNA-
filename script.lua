@@ -34,7 +34,7 @@ task.wait(1)
 local Window = Rayfield:CreateWindow({
     Name            = "MNA HUBV11.3",
     Icon            = 0,
-    LoadingTitle    = "BeeyIdiot",
+    LoadingTitle    = "MNA HUBV11.3",
     LoadingSubtitle = "V11.3 | Fish Hub",
     Theme           = "byTeh",
     DisableRayfieldPrompts = false,
@@ -1348,7 +1348,7 @@ ExclusiveTab:CreateToggle({
 task.wait(0.1)
 
 ExclusiveTab:CreateToggle({
-    Name         = "2N Real + Visual (Amblatant)",
+    Name         = " Amblatant",
     CurrentValue = false,
     Flag         = "Amblatant",
     Callback     = function(val)
@@ -1357,10 +1357,8 @@ ExclusiveTab:CreateToggle({
         saveCount = 1
         HookRemote("RE/FishCaught",                  "FishCaught")
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
-        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
-        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
-        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
-        needCast = true
+        HookRemote("RE/ObtainedNewFishNotification", "FishNotif"
+          needCast = true
         onToggleUB(val)
     end,
 })
