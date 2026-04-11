@@ -32,9 +32,9 @@ end
 task.wait(1)
 
 local Window = Rayfield:CreateWindow({
-    Name            = "MNA HUB V11.3",
+    Name            = "MNA HUBV11.3",
     Icon            = 0,
-    LoadingTitle    = "MNA HUB",
+    LoadingTitle    = "BeeyIdiot",
     LoadingSubtitle = "V11.3 | Fish Hub",
     Theme           = "byTeh",
     DisableRayfieldPrompts = false,
@@ -503,9 +503,9 @@ local function onToggleUB(value)
         Config.HookNotif = true
         equipRod()
         task.wait()
-        UB_start(0.1)
+        UB_start(2.5)
     else
-        UB_stop(5.5)
+        UB_stop(10.1)
         Config.HookNotif = false
     end
 end
@@ -521,7 +521,7 @@ task.spawn(function()
         and os.clock() - lastTimeFishCaught >= 20
         and blatantFishCycleCount > 1 then
             needCast = true
-            saveCount = 0
+            saveCount = 1
             blatantFishCycleCount = 1
             lastTimeFishCaught = os.clock()
             onToggleUB(false)
@@ -794,25 +794,25 @@ end)
 
 -- ====== INFO TAB ======
 task.wait(0.2)
-InfoTab:CreateSection("⚡ MNA HUB V11.3")
+InfoTab:CreateSection(" MNA HUB V11.3")
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
-    Title   = "Tentang MNA HUB",
-    Content = "MNA HUB V11.3 - Script Fisch lengkap. Auto Fish, Teleport, Enchant, Mining, Totem, dan banyak lagi! Remote system fixed.",
+    Title   = "ABOUT MNA HUB",
+    Content = "MNA HUB V11.3 - Script Fisch lengkap. Auto Fish, Teleport, Enchant, Mining, Totem, dan banyak lagi! @BYIAMTEH.",
 })
 
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
-    Title   = "⚠️ Disclaimer",
-    Content = "Risiko penggunaan sepenuhnya tanggung jawab pengguna. Gunakan dengan bijak.",
+    Title   = "ABOUT MNA",
+    Content = "SCRIPT FREEE NOT SELL.NEW11/4/26.",
 })
 
 task.wait(0.1)
 
 InfoTab:CreateButton({
-    Name     = "🔄 Reload Remotes",
+    Name     = "Reload Remotes",
     Callback = function()
         local l, f = loadRemotes()
         UB_init()
@@ -1295,18 +1295,18 @@ ExclusiveTab:CreateSection("Ultra Blatant Fishing")
 task.wait(0.1)
 
 local rodSettings = {
-    ["0. 3 NOTIF KEDIP"]      = { CompleteDelay = 2.998 },
-    ["1. Diamond / Element"]  = { CompleteDelay = 3.7   },
-    ["2. 3 NOTIF"]            = { CompleteDelay = 2.890 },
-    ["3. GF / Bambu"]         = { CompleteDelay = 3.7   },
-    ["4. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
+    ["1. 3 NOTIF KEDIP"]      = { CompleteDelay = 2.998 },
+    ["2. Diamond / Element"]  = { CompleteDelay = 3.7   },
+    ["3. 3 NOTIF"]            = { CompleteDelay = 2.890 },
+    ["4. GF / Bambu"]         = { CompleteDelay = 3.7   },
+    ["5. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
 }
 local rodSettingNames = {}
 for name in pairs(rodSettings) do table.insert(rodSettingNames, name) end
 table.sort(rodSettingNames)
 
 ExclusiveTab:CreateDropdown({
-    Name          = "Settings Template",
+    Name          = "Template",
     Options       = rodSettingNames,
     CurrentOption = {"1. Diamond / Element"},
     Flag          = "UBTemplate",
@@ -1336,7 +1336,7 @@ ExclusiveTab:CreateInput({
 task.wait(0.1)
 
 ExclusiveTab:CreateToggle({
-    Name         = "Ultra Blatant 3N",
+    Name         = " Blatant 3N[BETA]",
     CurrentValue = false,
     Flag         = "UltraBlatant",
     Callback     = function(val)
@@ -1357,6 +1357,7 @@ ExclusiveTab:CreateToggle({
         saveCount = 1
         HookRemote("RE/FishCaught",                  "FishCaught")
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
+        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         needCast = true
