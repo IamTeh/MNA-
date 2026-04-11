@@ -453,9 +453,13 @@ local function ub_loop()
                                 FireLocalEvent(xr, unpack(_G.SavedData.CaughtVisual))
                             end
                             xr = GetServerRemote("RE/ObtainedNewFishNotification")
-                            if xr and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
-                                FireLocalEvent(xr, unpack(_G.SavedData.FishNotif))
-                            end
+                            if notifRemote and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
+                            local notifData = _G.SavedData.FishNotif
+                            if notifData[1] and type(notifData[1]) == "table" then
+                            notifData[1].CustomDuration = 6 -- 6 detik = cukup untuk 6 notif terkumpul
+                               end
+                                 FireLocalEvent(notifRemote, unpack(notifData))
+                                        end  
                         end)
                         isCaught = false
                     end
