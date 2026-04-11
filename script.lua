@@ -452,7 +452,7 @@ local function ub_loop()
                             if xr and _G.SavedData.CaughtVisual and #_G.SavedData.CaughtVisual > 0 then
                                 FireLocalEvent(xr, unpack(_G.SavedData.CaughtVisual))
                             end
-                            local notifRemote = GetServerRemote("RE/ObtainedNewFishNotification")
+                            xr = GetServerRemote("RE/ObtainedNewFishNotification")
                             if notifRemote and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
                                 local notifData = _G.SavedData.FishNotif
                                 if notifData[1] and type(notifData[1]) == "table" then
