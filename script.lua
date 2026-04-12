@@ -262,9 +262,9 @@ local blatantFishCycleCount = 1
 local saveCount = 0
 
 _G.SavedData = _G.SavedData or {
-    FishCaught   = {1},
-    CaughtVisual = {4},
-    FishNotif    = {8}
+    FishCaught   = {},
+    CaughtVisual = {},
+    FishNotif    = {}
 }
 
 -- =============================
