@@ -794,7 +794,7 @@ end)
 
 -- ====== INFO TAB ======
 task.wait(0.2)
-InfoTab:CreateSection(" MNA HUB V11.3")
+InfoTab:CreateSection(" MNA HUB [BETA] ")
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
@@ -805,8 +805,8 @@ InfoTab:CreateParagraph({
 task.wait(0.1)
 
 InfoTab:CreateParagraph({
-    Title   = "ABOUT MNA",
-    Content = "SCRIPT FREEE NOT SELL.NEW11/4/26.",
+    Title   = "Moderation",
+    Content = "BeeyXMONA",
 })
 
 task.wait(0.1)
@@ -1357,7 +1357,7 @@ ExclusiveTab:CreateToggle({
         saveCount = 1
         HookRemote("RE/FishCaught",                  "FishCaught")
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
-        HookRemote("RE/ObtainedNewFishNotification", "FishNotif"
+        HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
           needCast = true
         onToggleUB(val)
     end,
