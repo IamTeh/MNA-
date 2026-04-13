@@ -1,6 +1,6 @@
 --[[
     MNA HUB V11.3 FREE NOT SELL 
-    UI : MNAHUB (Indigo Theme)
+    UI : MNAHUB (Developer)
     Fix : Remote + Bug HookRemote + Amblatant 100x notif
 ]]
 
@@ -627,7 +627,7 @@ task.spawn(function()
             if Config.CustomWebhook and Config.CustomWebhookUrl ~= "" then
                 pcall(function()
                     local payload = HttpService:JSONEncode({
-                        username = "MNA HUB V11.3",
+                        username = "MNA HUB",
                         embeds = {{
                             title  = "Caught Fish!",
                             color  = 0x00aaff,
@@ -682,13 +682,13 @@ end)
 --    WINDUI WINDOW
 -- =============================
 local Window = WindUI:CreateWindow({
-    Title       = "MNA HUBV11.3 (FREE)",
-    Icon        = "fish",
-    Author      = "Developer",
+    Title       = "MNA HUB (FREE)",
+    Icon        = "M",
+    Author      = "IamTeh",
     Folder      = "Dev",
     Size        = UDim2.fromOffset(580, 460),
     Transparent = true,
-    Theme       = "Indigo",
+    Theme       = "Developer",
     SideBarWidth = 170,
 })
 
@@ -726,19 +726,19 @@ G2L["ToggleBtn"].MouseButton1Click:Connect(function()
 end)
 
 Window:Tag({ Title = "V11.3",  Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
-Window:Tag({ Title = "Free",   Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
+Window:Tag({ Title = "FREE",   Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
 
 WindUI:Notify({
-    Title   = "MNA HUBV11.3",
-    Content = "Loaded! Remotes: " .. loadedCount .. " ✅",
+    Title   = "MNA HUB",
+    Content = "Loaded! Remotes: " .. loadedCount .. " ",
     Duration = 4,
-    Icon    = "fish",
+    Icon    = "M",
 })
 
 -- =============================
 --    TAB: INFO
 -- =============================
-local InfoTab = Window:Tab({ Title = "Info", Icon = "info" })
+local InfoTab = Window:Tab({ Title = "Info", Icon = "" })
 
 InfoTab:Section({ Title = "System Status", Icon = "activity" })
 
@@ -760,7 +760,7 @@ InfoTab:Button({
 InfoTab:Keybind({
     Title    = "MNA",
     Desc     = "Shortcut buka/tutup UI",
-    Value    = "G",
+    Value    = "By@Ella",
     Callback = function(v)
         Window:SetToggleKey(Enum.KeyCode[v])
     end
@@ -769,7 +769,7 @@ InfoTab:Keybind({
 -- =============================
 --    TAB: PLAYERS
 -- =============================
-local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
+local PlayersTab = Window:Tab({ Title = "Players", Icon = "" })
 
 PlayersTab:Section({ Title = "Character", Icon = "move" })
 
@@ -881,7 +881,7 @@ PlayersTab:Toggle({
 -- =============================
 --    TAB: FISHING
 -- =============================
-local FishTab = Window:Tab({ Title = "Fishing", Icon = "anchor" })
+local FishTab = Window:Tab({ Title = "Fishing", Icon = "" })
 
 FishTab:Section({ Title = "Ultra Blatant", Icon = "zap" })
 
@@ -1061,7 +1061,7 @@ FishTab:Button({
 -- =============================
 --    TAB: MAIN (Enchant + Cave)
 -- =============================
-local MainTab = Window:Tab({ Title = "Main", Icon = "settings-2" })
+local MainTab = Window:Tab({ Title = "Main", Icon = "" })
 
 MainTab:Section({ Title = "Auto Enchant", Icon = "sparkles" })
 
@@ -1221,7 +1221,7 @@ MainTab:Toggle({
 -- =============================
 --    TAB: TELEPORT
 -- =============================
-local TpTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
+local TpTab = Window:Tab({ Title = "Teleport", Icon = "" })
 
 TpTab:Section({ Title = "Map Locations", Icon = "navigation" })
 
@@ -1392,7 +1392,7 @@ ShopTab:Toggle({
 -- =============================
 --    TAB: MISC
 -- =============================
-local MiscTab = Window:Tab({ Title = "Misc", Icon = "wrench" })
+local MiscTab = Window:Tab({ Title = "Misc", Icon = "arrangement" })
 
 MiscTab:Section({ Title = "Visual & Performance", Icon = "eye" })
 
@@ -1527,7 +1527,7 @@ MiscTab:Button({
 -- =============================
 task.wait(0.5)
 WindUI:Notify({
-    Title    = " MNA HUB V11.3",
+    Title    = " MNA HUB",
     Content  = "Semua fitur loaded! Notif: "..Config.NotifCount.."x per catch 🎣",
     Duration = 5,
     Icon     = "check-circle",
