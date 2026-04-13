@@ -440,25 +440,34 @@ local function ub_loop()
                         end
                     end)
 
-                    -- FIX: amblatant (bukan mnblatant)
-                    if Config.amblatant and isCaught then
-                        task.spawn(function()
-                            task.wait(0.05)
-                            local xr = GetServerRemote("RE/FishCaught")
-                            if xr and _G.SavedData.FishCaught and #_G.SavedData.FishCaught > 0 then
-                                FireLocalEvent(xr, unpack(_G.SavedData.FishCaught))
-                            end
-                            xr = GetServerRemote("RE/CaughtFishVisual")
-                            if xr and _G.SavedData.CaughtVisual and #_G.SavedData.CaughtVisual > 0 then
-                                FireLocalEvent(xr, unpack(_G.SavedData.CaughtVisual))
-                            end
-                            xr = GetServerRemote("RE/ObtainedNewFishNotification")
-                            if xr and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
-                                FireLocalEvent(xr, unpack(_G.SavedData.FishNotif))
-                            end
-                        end)
-                        isCaught = false
-                    end
+           -- HASIL: 1 real + 7 buatan = 8 notif per catch
+             if Config.amblatant and isCaught then
+              task.spawn(function()
+               task.wait(0.05)
+
+                  local xr_caught = GetServerRemote("RE/FishCaught")
+                  local xr_visual = GetServerRemote("RE/CaughtFishVisual")
+                  local xr_notif  = GetServerRemote("RE/ObtainedNewFishNotification")
+
+          -- FishCaught & Visual cukup 1x
+            if xr_caught and #_G.SavedData.FishCaught > 0 then
+                FireLocalEvent(xr_caught, unpack(_G.SavedData.FishCaught))
+             end
+            if xr_visual and #_G.SavedData.CaughtVisual > 0 then
+                FireLocalEvent(xr_visual, unpack(_G.SavedData.CaughtVisual))
+             end
+
+         -- Notif popup 7x
+             for i = 1, 7 do
+            if xr_notif and #_G.SavedData.FishNotif > 0 then
+                FireLocalEvent(xr_notif, unpack(_G.SavedData.FishNotif))
+            end
+            task.wait(0.01)
+        end
+    end)
+    isCaught = false
+                                
+    end   
                 end)
             end
 
