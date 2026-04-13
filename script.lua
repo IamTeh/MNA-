@@ -224,9 +224,9 @@ local loadedCount, failedCount = loadRemotes()
 -- =============================
 --    CONFIG
 -- =============================
-local Config = {
+local Config = {    
     AutoCatch        = false,
-    CatchDelay       = 0.7,
+    CatchDelay       = 0.9,
     UB = {
         Active   = false,
         Settings = { CompleteDelay = 3.7, CancelDelay = 0.3 },
@@ -234,6 +234,8 @@ local Config = {
         Stats    = { castCount = 5, startTime = 0.0 }
     },
     amblatant        = false, -- FIX: was mnblatant
+    Blatant3Notif    = false,     
+    Blatant3Task     = nil,       
     antiOKOK         = false,
     autoFishing      = false,
     AutoSellState    = false,
@@ -796,7 +798,32 @@ task.spawn(function()
         end)
     end
 end)
+-- =============================
+--    BLATANT 3N[BETA] - 6 NOTIF SATU PER SATU & LAMA
+--    (Tidak mengganggu Amblatant)
+-- =============================
 
+local function Blatant3SequentialLoop()
+    while Config.Blatant3Notif do
+        if isCaught then
+            task.spawn(function()
+                task.wait(0.05)
+
+                local xr_notif = GetServerRemote("RE/ObtainedNewFishNotification")
+
+                -- 6 Notif muncul SATU PER SATU dengan jeda lama
+                for i = 1, 6 do
+                    if xr_notif and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
+                        SafeFireLocalEvent(xr_notif, unpack(_G.SavedData.FishNotif))
+                    end
+                    task.wait(0.82)   -- Delay ini yang membuat notif lama di layar
+                end
+            end)
+            isCaught = false
+        end
+        task.wait(0.15)
+    end
+end
 -- ======================================================
 --    UI BUILD
 -- ======================================================
@@ -1349,10 +1376,30 @@ ExclusiveTab:CreateToggle({
     CurrentValue = false,
     Flag         = "UltraBlatant",
     Callback     = function(val)
-        needCast = true
-        onToggleUB(val)
+        Config.Blatant3Notif = val   -- Tambahan variabel baru
+
+        if val then
+            HookAmblatantRemotes()   -- Pastikan data notif tersimpan
+            needCast = true
+            onToggleUB(true)
+
+            -- Mulai loop khusus untuk 6 notif satu per satu
+            if not Config.Blatant3Task then
+                Config.Blatant3Task = task.spawn(Blatant3SequentialLoop)
+            end
+
+            NotifySuccess("Blatant 3N", "Aktif! 6 Notif muncul satu per satu & lama")
+        else
+            Config.Blatant3Notif = false
+            if Config.Blatant3Task then
+                pcall(function() task.cancel(Config.Blatant3Task) end)
+                Config.Blatant3Task = nil
+            end
+            onToggleUB(false)
+            NotifyWarning("Blatant 3N", "Dimatikan.")
+        end
     end,
-})
+})            
 
 task.wait(0.1)
 
