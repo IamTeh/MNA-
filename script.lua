@@ -32,9 +32,9 @@ end
 task.wait(1)
 
 local Window = Rayfield:CreateWindow({
-    Name            = "MNA HUBV11.3",
+    Name            = "QUANTUMV11.3",
     Icon            = 0,
-    LoadingTitle    = "WILZ SAYANG FATEH",
+    LoadingTitle    = "HAMMZZ DEVELOPER",
     LoadingSubtitle = "V11.3 | Fish Hub",
     Theme           = "byTeh",
     DisableRayfieldPrompts = false,
@@ -2049,7 +2049,7 @@ MiscTab:CreateButton({
 task.wait(0.5)
 
 Rayfield:Notify({
-    Title    = " MNA HUB V11.3 ",
+    Title    = " QUANTUM V11.3 ",
     Content  = "Remotes loaded: "..loadedCount.." | Script siap! 🎣",
     Duration = 5,
     Image    = 4483362458,
