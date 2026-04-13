@@ -1,7 +1,21 @@
 --[[
-    MNA HUB V11.3 FREE NOT SELL 
+    MNA HUB V11.3 FREE NOT SELL
     UI : MNAHUB (Developer)
-    Fix : Remote + Bug HookRemote + Amblatant 100x notif
+    Fix : Remote + Bug HookRemote + amBlantat 3notif + UB NotifQueue akumulasi
+    
+    CARA KERJA:
+    [Ultra Blatant 3N]
+      - Setiap cast berhasil dapat ikan → 1 notif masuk antrian (_G.NotifQueue)
+      - Processor antrian cek: kalau notif aktif di layar < 2, langsung tampilkan
+      - Durasi notif diperpanjang (NOTIF_DURATION) > interval cast
+      - Efek: notif lama belum hilang saat notif baru masuk → selalu 2 notif di layar
+      - Sampai 6 cast = 6 notif bergantian (hilang 1 masuk 1)
+    
+    [amBlantat]
+      - Setiap catch REAL dari server → simpan snapshot data ikan
+      - Replay: FishCaught 1x + CaughtVisual 1x + ObtainedNewFishNotification 3x
+      - 3 notif muncul dengan delay Config.NotifDelay antar notif
+      - TIDAK menggunakan NotifQueue → sistem terpisah, tidak saling ganggu
 ]]
 
 repeat task.wait(0.5) until game:IsLoaded()
@@ -133,10 +147,27 @@ local Config = {
     CustomWebhook       = false,
     CustomWebhookUrl    = "",
     HookNotif           = false,
-    -- NOTIF DELAY CONFIG
-    NotifDelay          = 0.1,  -- jeda antar notif (detik)
-    NotifCount          = 3,  -- berapa kali notif per catch
+    -- NOTIF CONFIG amBlantat (tidak berubah)
+    NotifDelay          = 0.1,  -- jeda antar 3 notif amBlantat (detik)
+    NotifCount          = 3,    -- jumlah notif per catch amBlantat
+    -- NOTIF CONFIG UB Queue (fitur baru, terpisah dari amBlantat)
+    UBNotifDurationMult = 2.0,  -- multiplier: NOTIF_DURATION = CompleteDelay * mult
 }
+
+-- =============================
+--    UB NOTIF QUEUE GLOBALS
+--    (Terpisah dari amBlantat)
+-- =============================
+_G.NotifQueue  = _G.NotifQueue  or {}  -- antrian notif UB
+_G.NotifActive = _G.NotifActive or 0   -- counter notif aktif di layar
+
+local MAX_NOTIF_ONSCREEN = 2    -- batas max notif di layar (sesuai sistem game)
+local NOTIF_GAP          = 0.15 -- jeda antar notif masuk layar (detik)
+
+-- Fungsi hitung durasi notif dinamis sesuai rod
+local function getNotifDuration()
+    return Config.UB.Settings.CompleteDelay * Config.UBNotifDurationMult
+end
 
 local Tasks                 = {}
 local needCast              = true
@@ -158,7 +189,7 @@ local lastValidCaughtVisual = {}
 local lastValidFishNotif    = {}
 
 -- =============================
---    FIX: deepCopyArr di GLOBAL scope
+--    deepCopyArr
 -- =============================
 local function deepCopyArr(t)
     local out = {}
@@ -211,8 +242,7 @@ local function FireLocalEvent(remote, ...)
 end
 
 -- =============================
---    FIX: HookRemote di GLOBAL scope
---    (sebelum dipanggil manapun)
+--    HookRemote
 -- =============================
 local _hookedRemotes = {}
 local function HookRemote(humanName, storageKey)
@@ -280,12 +310,46 @@ end
 
 local loadedCount, failedCount = loadRemotes()
 
--- FIX: Hook di sini setelah HookRemote sudah didefinisikan
+-- Hook remotes setelah HookRemote didefinisikan
 task.spawn(function()
     task.wait(1)
     HookRemote("RE/FishCaught",                  "FishCaught")
     HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
     HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
+end)
+
+-- =============================
+--    UB NOTIF QUEUE PROCESSOR
+--    Khusus Ultra Blatant 3N
+--    TIDAK menyentuh amBlantat
+-- =============================
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        -- Hanya aktif saat UB nyala DAN amblatant MATI
+        -- (kalau amblatant nyala, amBlantat yang handle notif)
+        if Config.UB.Active and not Config.amblatant then
+            if #_G.NotifQueue > 0 and _G.NotifActive < MAX_NOTIF_ONSCREEN then
+                local args = table.remove(_G.NotifQueue, 1)
+                local xr_notif = GetServerRemote("RE/ObtainedNewFishNotification")
+                if xr_notif and #args > 0 then
+                    _G.NotifActive += 1
+                    FireLocalEvent(xr_notif, unpack(args))
+                    -- Hitung durasi notif lalu kurangi counter
+                    task.spawn(function()
+                        task.wait(getNotifDuration())
+                        _G.NotifActive = math.max(0, _G.NotifActive - 1)
+                    end)
+                end
+                task.wait(NOTIF_GAP)
+            end
+        else
+            -- Reset counter saat UB mati
+            if not Config.UB.Active then
+                _G.NotifActive = 0
+            end
+        end
+    end
 end)
 
 -- =============================
@@ -340,26 +404,31 @@ local function UB_init()
 end
 
 -- =============================
---    AMBLATANT: 3 real + 3 notif
---    dengan delay antar notif
+--    amBlantat: FishCaught 1x + Visual 1x + 3 Notif
+--    TIDAK menggunakan NotifQueue
+--    SISTEM TERPISAH dari UB Queue
 -- =============================
 local function replayAmblatantNotif()
     task.spawn(function()
-        -- FishCaught & Visual: 1x saja
         local xr_caught = GetServerRemote("RE/FishCaught")
         local xr_visual = GetServerRemote("RE/CaughtFishVisual")
         local xr_notif  = GetServerRemote("RE/ObtainedNewFishNotification")
 
+        -- FishCaught: 1x saja
         if xr_caught and #lastValidFishCaught > 0 then
             FireLocalEvent(xr_caught, unpack(lastValidFishCaught))
         end
         task.wait(0.03)
+
+        -- CaughtVisual: 1x saja
         if xr_visual and #lastValidCaughtVisual > 0 then
             FireLocalEvent(xr_visual, unpack(lastValidCaughtVisual))
         end
         task.wait(0.03)
 
-        -- Notif popup: Config.NotifCount kali dengan delay Config.NotifDelay
+        -- Notif popup: Config.NotifCount kali (default 3)
+        -- dengan delay Config.NotifDelay antar notif
+        -- LANGSUNG FireLocalEvent, TIDAK lewat NotifQueue
         if xr_notif and #lastValidFishNotif > 0 then
             for i = 1, Config.NotifCount do
                 FireLocalEvent(xr_notif, unpack(lastValidFishNotif))
@@ -369,6 +438,9 @@ local function replayAmblatantNotif()
     end)
 end
 
+-- =============================
+--    UB LOOP
+-- =============================
 local function ub_loop()
     while Config.UB.Active do
         local ok, err = pcall(function()
@@ -426,30 +498,44 @@ local function ub_loop()
                 end)
 
                 -- Tunggu konfirmasi server maksimal 1.5 detik
-                if Config.amblatant then
-                    local waited = 0
-                    while not isCaught and waited < 1.5 do
-                        task.wait(0.05)
-                        waited += 0.05
+                local waited = 0
+                while not isCaught and waited < 1.5 do
+                    task.wait(0.05)
+                    waited += 0.05
+                end
+
+                if isCaught then
+                    isCaught = false
+                    -- Simpan snapshot data terbaru
+                    if #(_G.SavedData.FishCaught or {}) > 0 then
+                        lastValidFishCaught = deepCopyArr(_G.SavedData.FishCaught)
+                    end
+                    if #(_G.SavedData.CaughtVisual or {}) > 0 then
+                        lastValidCaughtVisual = deepCopyArr(_G.SavedData.CaughtVisual)
+                    end
+                    if #(_G.SavedData.FishNotif or {}) > 0 then
+                        lastValidFishNotif = deepCopyArr(_G.SavedData.FishNotif)
                     end
 
-                    if isCaught then
-                        isCaught = false
-                        -- Simpan snapshot data terbaru
-                        if #(_G.SavedData.FishCaught or {}) > 0 then
-                            lastValidFishCaught = deepCopyArr(_G.SavedData.FishCaught)
+                    if Config.amblatant then
+                        -- =====================
+                        -- MODE amBlantat:
+                        -- Replay 1x FishCaught + 1x Visual + 3x Notif langsung
+                        -- TIDAK masuk NotifQueue
+                        -- =====================
+                        if #lastValidFishNotif > 0 then
+                            replayAmblatantNotif()
                         end
-                        if #(_G.SavedData.CaughtVisual or {}) > 0 then
-                            lastValidCaughtVisual = deepCopyArr(_G.SavedData.CaughtVisual)
+                    else
+                        -- =====================
+                        -- MODE Ultra Blatant 3N:
+                        -- 1 notif masuk NotifQueue per catch
+                        -- Processor yang atur tampil di layar
+                        -- Efek akumulasi max 2 notif di layar
+                        -- =====================
+                        if #lastValidFishNotif > 0 then
+                            table.insert(_G.NotifQueue, deepCopyArr(lastValidFishNotif))
                         end
-                        if #(_G.SavedData.FishNotif or {}) > 0 then
-                            lastValidFishNotif = deepCopyArr(_G.SavedData.FishNotif)
-                        end
-                    end
-
-                    -- Replay notif 3x dengan delay
-                    if #lastValidFishNotif > 0 then
-                        replayAmblatantNotif()
                     end
                 end
             end
@@ -467,14 +553,20 @@ local function UB_start()
     UB_init()
     Config.UB.Active = true
     needCast = true
+    -- Reset queue saat mulai
+    _G.NotifQueue  = {}
+    _G.NotifActive = 0
     Config.UB.Stats.startTime = tick()
     Tasks.ubtask = task.spawn(ub_loop)
-    NotifySuccess("Ultra Blatant", "Aktif! ")
+    NotifySuccess("Ultra Blatant", "Aktif!")
 end
 
 local function UB_stop()
     if not Config.UB.Active then return end
     Config.UB.Active = false
+    -- Bersihkan queue
+    _G.NotifQueue  = {}
+    _G.NotifActive = 0
     safeFire(function()
         if Config.UB.Remotes.CancelFishingInputs then
             CallRemote(Config.UB.Remotes.CancelFishingInputs)
@@ -608,6 +700,9 @@ end
 
 -- =============================
 --    FISH NOTIF HOOK
+--    Menangani notif dari server
+--    + push ke NotifQueue untuk UB
+--    + isCaught = true untuk amBlantat
 -- =============================
 task.spawn(function()
     task.wait(2)
@@ -682,17 +777,17 @@ end)
 --    WINDUI WINDOW
 -- =============================
 local Window = WindUI:CreateWindow({
-    Title       = "MNA HUB (FREE)",
-    Icon        = "M",
-    Author      = "IamTeh",
-    Folder      = "Dev",
-    Size        = UDim2.fromOffset(580, 460),
-    Transparent = true,
-    Theme       = "Developer",
+    Title        = "MNA HUB (FREE)",
+    Icon         = "M",
+    Author       = "IamTeh",
+    Folder       = "Dev",
+    Size         = UDim2.fromOffset(580, 460),
+    Transparent  = true,
+    Theme        = "Developer",
     SideBarWidth = 170,
 })
 
--- TOMBOL BUKA/TUTUP (draggable)
+-- TOMBOL BUKA/TUTUP
 local G2L = {}
 G2L["ToggleGui"] = Instance.new("ScreenGui")
 G2L["ToggleGui"].Parent = game:GetService("CoreGui")
@@ -700,13 +795,13 @@ G2L["ToggleGui"].ResetOnSpawn = false
 G2L["ToggleGui"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 G2L["ToggleBtn"] = Instance.new("ImageButton")
-G2L["ToggleBtn"].Parent       = G2L["ToggleGui"]
-G2L["ToggleBtn"].Size         = UDim2.new(0, 48, 0, 48)
-G2L["ToggleBtn"].Position     = UDim2.new(0.05, 0, 0.04, 0)
+G2L["ToggleBtn"].Parent           = G2L["ToggleGui"]
+G2L["ToggleBtn"].Size             = UDim2.new(0, 48, 0, 48)
+G2L["ToggleBtn"].Position         = UDim2.new(0.05, 0, 0.04, 0)
 G2L["ToggleBtn"].BackgroundColor3 = Color3.fromRGB(60, 0, 180)
-G2L["ToggleBtn"].Image        = "rbxassetid://7733715400"
-G2L["ToggleBtn"].Draggable    = true
-G2L["ToggleBtn"].BorderSizePixel = 0
+G2L["ToggleBtn"].Image            = "rbxassetid://7733715400"
+G2L["ToggleBtn"].Draggable        = true
+G2L["ToggleBtn"].BorderSizePixel  = 0
 
 local btnCorner = Instance.new("UICorner", G2L["ToggleBtn"])
 btnCorner.CornerRadius = UDim.new(0, 10)
@@ -725,14 +820,14 @@ G2L["ToggleBtn"].MouseButton1Click:Connect(function()
     windowVisible = not windowVisible
 end)
 
-Window:Tag({ Title = "V11.3",  Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
-Window:Tag({ Title = "FREE",   Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
+Window:Tag({ Title = "V11.3", Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
+Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(120, 50, 255), Radius = 17 })
 
 WindUI:Notify({
-    Title   = "MNA HUB",
-    Content = "Loaded! Remotes: " .. loadedCount .. " ",
+    Title    = "MNA HUB",
+    Content  = "Loaded! Remotes: " .. loadedCount,
     Duration = 4,
-    Icon    = "M",
+    Icon     = "M",
 })
 
 -- =============================
@@ -760,7 +855,7 @@ InfoTab:Button({
 InfoTab:Keybind({
     Title    = "MNA",
     Desc     = "Shortcut buka/tutup UI",
-    Value    = "By@Ella",
+    Value    = "X1",
     Callback = function(v)
         Window:SetToggleKey(Enum.KeyCode[v])
     end
@@ -888,7 +983,7 @@ FishTab:Section({ Title = "Ultra Blatant", Icon = "zap" })
 local rodSettings = {
     ["1. 3 NOTIF KEDIP"]      = { CompleteDelay = 2.998 },
     ["2. Diamond / Element"]  = { CompleteDelay = 3.7   },
-    ["3. (3) NOTIF"]            = { CompleteDelay = 2.890 },
+    ["3. (3) NOTIF"]          = { CompleteDelay = 2.890 },
     ["4. GF / Bambu"]         = { CompleteDelay = 3.7   },
     ["5. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
 }
@@ -899,7 +994,7 @@ table.sort(rodNames)
 FishTab:Dropdown({
     Title  = "Template Rod",
     Values = rodNames,
-    Value  = "1. Diamond / Element",
+    Value  = "2. Diamond / Element",
     Callback = function(v)
         local s = rodSettings[v]
         if s then Config.UB.Settings.CompleteDelay = s.CompleteDelay end
@@ -915,6 +1010,18 @@ FishTab:Input({
             Config.UB.Settings.CompleteDelay = n
             NotifySuccess("Delay", "Set: "..n.."s")
         end
+    end
+})
+
+-- Slider multiplier durasi notif UB (baru)
+FishTab:Slider({
+    Title = "Complete Delay UB",
+    Desc  = "delaynya",
+    Value = { Min = 10, Max = 50, Default = 20 },
+    Step  = 1,
+    Callback = function(v)
+        Config.UBNotifDurationMult = v / 10
+        NotifyInfo("UB Notif", "Durasi: "..Config.UBNotifDurationMult.."x delay")
     end
 })
 
@@ -950,27 +1057,27 @@ FishTab:Toggle({
 })
 
 FishTab:Divider()
-FishTab:Section({ Title = "Notif Delay Config", Icon = "bell" })
+FishTab:Section({ Title = "Notif Config (amBlantat)", Icon = "bell" })
 
 FishTab:Slider({
-    Title = "Catch",
-    Desc  = "visual ya?",
-    Value = { Min = 1, Max = 200, Default = 100 },
+    Title = "Catch (jumlah notif amBlantat)",
+    Desc  = "Default 3 — tidak mempengaruhi UB",
+    Value = { Min = 1, Max = 10, Default = 3 },
     Step  = 1,
     Callback = function(v)
         Config.NotifCount = v
-        NotifyInfo("Notif", "Jumlah: "..v.."x per catch")
+        NotifyInfo("amBlantat Notif", "Jumlah: "..v.."x per catch")
     end
 })
 
 FishTab:Slider({
-    Title = "Delay  Notif",
-    Desc  = "0.1s-1s",
+    Title = "Delay Notif amBlantat (0.01s - 1s)",
+    Desc  = "Default: 0.1s",
     Value = { Min = 0, Max = 100, Default = 10 },
     Step  = 1,
     Callback = function(v)
         Config.NotifDelay = v / 100
-        NotifyInfo("Delay", "Delay: "..Config.NotifDelay.."s")
+        NotifyInfo("amBlantat Delay", "Delay: "..Config.NotifDelay.."s")
     end
 })
 
@@ -1059,7 +1166,7 @@ FishTab:Button({
 })
 
 -- =============================
---    TAB: MAIN (Enchant + Cave)
+--    TAB: MAIN
 -- =============================
 local MainTab = Window:Tab({ Title = "Main", Icon = "" })
 
@@ -1440,7 +1547,7 @@ MiscTab:Toggle({
                 if e:IsA("PostEffect") then e.Enabled = false end
             end
             pcall(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end)
-            NotifySuccess("FPS", "Aktif! Shadows dimatikan 🚀")
+            NotifySuccess("FPS", "Aktif! Shadows dimatikan")
         else
             pcall(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic end)
         end
@@ -1527,8 +1634,8 @@ MiscTab:Button({
 -- =============================
 task.wait(0.5)
 WindUI:Notify({
-    Title    = " MNA HUB",
-    Content  = "Semua fitur loaded! Notif: "..Config.NotifCount.."x per catch 🎣",
+    Title    = "MNA HUB",
+    Content  = "Semua fitur loaded! amBlantat: "..Config.NotifCount.."x per catch",
     Duration = 5,
     Icon     = "check-circle",
 })
