@@ -518,6 +518,8 @@ local function onToggleUB(value)
     else
         UB_stop(10.1)
         Config.HookNotif = false
+        Blatant3Notif    = false,     
+        Blatant3Task     = nil,
     end
 end
 
@@ -798,32 +800,6 @@ task.spawn(function()
         end)
     end
 end)
--- =============================
---    BLATANT 3N[BETA] - 6 NOTIF SATU PER SATU & LAMA
---    (Tidak mengganggu Amblatant)
--- =============================
-
-local function Blatant3SequentialLoop()
-    while Config.Blatant3Notif do
-        if isCaught then
-            task.spawn(function()
-                task.wait(0.05)
-
-                local xr_notif = GetServerRemote("RE/ObtainedNewFishNotification")
-
-                -- 6 Notif muncul SATU PER SATU dengan jeda lama
-                for i = 1, 6 do
-                    if xr_notif and _G.SavedData.FishNotif and #_G.SavedData.FishNotif > 0 then
-                        SafeFireLocalEvent(xr_notif, unpack(_G.SavedData.FishNotif))
-                    end
-                    task.wait(0.82)   -- Delay ini yang membuat notif lama di layar
-                end
-            end)
-            isCaught = false
-        end
-        task.wait(0.15)
-    end
-end
 -- ======================================================
 --    UI BUILD
 -- ======================================================
@@ -1400,7 +1376,6 @@ ExclusiveTab:CreateToggle({
         end
     end,
 })            
-
 task.wait(0.1)
 
 ExclusiveTab:CreateToggle({
