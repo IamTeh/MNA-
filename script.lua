@@ -779,9 +779,9 @@ end)
 --    WINDUI WINDOW
 -- =============================
 local Window = WindUI:CreateWindow({
-    Title        = "MNA HUB V11.3",
+    Title        = "MNA HUB (FREE)",
     Icon         = "fish",
-    Author       = "IamTeh",
+    Author       = "https://discord.gg/xjqJEnsY2",
     Folder       = "MNA HUB",
     Size         = UDim2.fromOffset(580, 460),
     Transparent  = true,
@@ -835,7 +835,7 @@ local InfoTab = Window:Tab({ Title = "Info", Icon = "info" })
 InfoTab:Section({ Title = "System Status", Icon = "activity" })
 
 InfoTab:Paragraph({
-    Title   = "Remote Status",
+    Title   = "RELOAD REMOTE",
     Content = "Loaded: " .. loadedCount .. " | Failed: " .. failedCount
 })
 
