@@ -779,13 +779,13 @@ end)
 --    WINDUI WINDOW
 -- =============================
 local Window = WindUI:CreateWindow({
-    Title        = "MNA HUB (FREE)",
-    Icon         = "M",
+    Title        = "MNA HUB V11.3",
+    Icon         = "fish",
     Author       = "IamTeh",
-    Folder       = "Dev",
+    Folder       = "MNA HUB",
     Size         = UDim2.fromOffset(580, 460),
     Transparent  = true,
-    Theme        = "Developer",
+    Theme        = "Crimson",
     SideBarWidth = 170,
 })
 
@@ -830,7 +830,7 @@ WindUI:Notify({
 -- =============================
 --    TAB: INFO
 -- =============================
-local InfoTab = Window:Tab({ Title = "Info", Icon = "" })
+local InfoTab = Window:Tab({ Title = "Info", Icon = "info" })
 
 InfoTab:Section({ Title = "System Status", Icon = "activity" })
 
@@ -861,7 +861,7 @@ InfoTab:Keybind({
 -- =============================
 --    TAB: PLAYERS
 -- =============================
-local PlayersTab = Window:Tab({ Title = "Players", Icon = "" })
+local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
 
 PlayersTab:Section({ Title = "Character", Icon = "move" })
 
@@ -969,7 +969,7 @@ PlayersTab:Toggle({
 -- =============================
 --    TAB: FISHING
 -- =============================
-local FishTab = Window:Tab({ Title = "Fishing", Icon = "" })
+local FishTab = Window:Tab({ Title = "Fishing", Icon = "anchor" })
 
 FishTab:Section({ Title = "Ultra Blatant", Icon = "zap" })
 
@@ -1252,7 +1252,7 @@ FishTab:Toggle({
 -- =============================
 --    TAB: MAIN
 -- =============================
-local MainTab = Window:Tab({ Title = "Main", Icon = "" })
+local MainTab = Window:Tab({ Title = "Main", Icon = "settings-2" })
 
 MainTab:Section({ Title = "Auto Enchant", Icon = "sparkles" })
 
@@ -1493,7 +1493,7 @@ MainTab:Toggle({
 -- =============================
 --    TAB: TELEPORT
 -- =============================
-local TpTab = Window:Tab({ Title = "Teleport", Icon = "" })
+local TpTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
 
 TpTab:Section({ Title = "Map Locations", Icon = "navigation" })
 
@@ -1692,7 +1692,7 @@ ShopTab:Toggle({
 -- =============================
 --    TAB: MISC
 -- =============================
-local MiscTab = Window:Tab({ Title = "Misc", Icon = "arrangement" })
+local MiscTab = Window:Tab({ Title = "Misc", Icon = "wrench" })
 
 MiscTab:Section({ Title = "Visual & Performance", Icon = "eye" })
 
