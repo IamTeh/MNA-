@@ -1,20 +1,18 @@
 --[[
     MNA HUB V11.3 FREE NOT SELL
-    UI : MNAHUB (Developer)
+    UI : WindUI
     Fix : Remote + Bug HookRemote + amBlantat 3notif + UB NotifQueue akumulasi
-    
+
     CARA KERJA:
     [Ultra Blatant 3N]
       - Setiap cast berhasil dapat ikan → 1 notif masuk antrian (_G.NotifQueue)
       - Processor antrian cek: kalau notif aktif di layar < 2, langsung tampilkan
       - Durasi notif diperpanjang (NOTIF_DURATION) > interval cast
       - Efek: notif lama belum hilang saat notif baru masuk → selalu 2 notif di layar
-      - Sampai 6 cast = 6 notif bergantian (hilang 1 masuk 1)
-    
+
     [amBlantat]
       - Setiap catch REAL dari server → simpan snapshot data ikan
-      - Replay: FishCaught 1x + CaughtVisual 1x + ObtainedNewFishNotification 3x
-      - 3 notif muncul dengan delay Config.NotifDelay antar notif
+      - Replay: FishCaught 1x + CaughtVisual 1x + ObtainedNewFishNotification Nx
       - TIDAK menggunakan NotifQueue → sistem terpisah, tidak saling ganggu
 ]]
 
@@ -43,7 +41,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService        = game:GetService("RunService")
 local UserInputService  = game:GetService("UserInputService")
 local HttpService       = game:GetService("HttpService")
-local CoreGui           = game:GetService("CoreGui")
 local LocalPlayer       = Players.LocalPlayer
 local isMobile          = UserInputService.TouchEnabled
 
@@ -72,8 +69,7 @@ local net = ReplicatedStorage
     :WaitForChild("sleitnick_net@0.2.0", 10)
     :WaitForChild("net", 10)
 
-local remotes = net:GetChildren()
-print("[MNA HUB] Remotes: " .. #remotes)
+print("[MNA HUB] Remotes: " .. #net:GetChildren())
 
 local function GetServerRemote(targetName)
     local allRemotes = net:GetChildren()
@@ -122,8 +118,8 @@ end
 --    CONFIG
 -- =============================
 local Config = {
-    AutoCatch        = false,
-    CatchDelay       = 0.7,
+    AutoCatch           = false,
+    CatchDelay          = 0.7,
     UB = {
         Active   = false,
         Settings = { CompleteDelay = 3.7, CancelDelay = 0.3 },
@@ -147,24 +143,20 @@ local Config = {
     CustomWebhook       = false,
     CustomWebhookUrl    = "",
     HookNotif           = false,
-    -- NOTIF CONFIG amBlantat (tidak berubah)
-    NotifDelay          = 0.1,  -- jeda antar 3 notif amBlantat (detik)
-    NotifCount          = 3,    -- jumlah notif per catch amBlantat
-    -- NOTIF CONFIG UB Queue (fitur baru, terpisah dari amBlantat)
-    UBNotifDurationMult = 2.0,  -- multiplier: NOTIF_DURATION = CompleteDelay * mult
+    NotifDelay          = 0.1,
+    NotifCount          = 3,
+    UBNotifDurationMult = 2.0,
 }
 
 -- =============================
 --    UB NOTIF QUEUE GLOBALS
---    (Terpisah dari amBlantat)
 -- =============================
-_G.NotifQueue  = _G.NotifQueue  or {}  -- antrian notif UB
-_G.NotifActive = _G.NotifActive or 0   -- counter notif aktif di layar
+_G.NotifQueue  = _G.NotifQueue  or {}
+_G.NotifActive = _G.NotifActive or 0
 
-local MAX_NOTIF_ONSCREEN = 2    -- batas max notif di layar (sesuai sistem game)
-local NOTIF_GAP          = 0.15 -- jeda antar notif masuk layar (detik)
+local MAX_NOTIF_ONSCREEN = 2
+local NOTIF_GAP          = 0.15
 
--- Fungsi hitung durasi notif dinamis sesuai rod
 local function getNotifDuration()
     return Config.UB.Settings.CompleteDelay * Config.UBNotifDurationMult
 end
@@ -183,7 +175,6 @@ _G.SavedData = _G.SavedData or {
     FishNotif    = {}
 }
 
--- Snapshot data catch terakhir
 local lastValidFishCaught   = {}
 local lastValidCaughtVisual = {}
 local lastValidFishNotif    = {}
@@ -214,12 +205,18 @@ local function getHRP()
     return char:FindFirstChild("HumanoidRootPart")
 end
 
+-- FIX: Events dideklarasi di bawah, equipRod aman karena hanya dipanggil
+-- setelah loadRemotes() selesai
+local Events = {}
+
 local function equipRod()
     task.wait(0.1)
-    CallRemote(Events and Events.equip, 1)
+    if Events.equip then CallRemote(Events.equip, 1) end
     task.wait(0.1)
-    if Config.autoFishing or Config.AutoCatch then
-        CallRemote(Events and Events.UpdateAutoFishing, true)
+    if Events.UpdateAutoFishing then
+        if Config.autoFishing or Config.AutoCatch then
+            CallRemote(Events.UpdateAutoFishing, true)
+        end
     end
 end
 
@@ -274,8 +271,8 @@ end)
 
 -- =============================
 --    REMOTES
+--    FIX Bug 1: tambah exclaimEvent yang hilang
 -- =============================
-local Events = {}
 local function loadRemotes()
     local loaded, failed = 0, 0
     local list = {
@@ -288,6 +285,7 @@ local function loadRemotes()
         { key="UpdateAutoFishing",  name="RF/UpdateAutoFishingState"        },
         { key="fishing",            name="RF/CatchFishCompleted"            },
         { key="fishingRE",          name="RE/CatchFishCompleted"            },
+        -- FIX BUG 1: exclaimEvent ada di listener tapi tidak di loadRemotes
         { key="exclaimEvent",       name="RE/ReplicateTextEffect"           },
         { key="sell",               name="RF/SellAllItems"                  },
         { key="favorite",           name="RE/FavoriteItem"                  },
@@ -303,14 +301,16 @@ local function loadRemotes()
     for _, r in ipairs(list) do
         local remote = GetServerRemote(r.name)
         Events[r.key] = remote
-        if remote then loaded += 1 else failed += 1 end
+        if remote then loaded = loaded + 1
+        else failed = failed + 1; warn("[MNA] Remote gagal: " .. r.name) end
     end
+    print("[MNA HUB] Loaded: " .. loaded .. " | Failed: " .. failed)
     return loaded, failed
 end
 
 local loadedCount, failedCount = loadRemotes()
 
--- Hook remotes setelah HookRemote didefinisikan
+-- Hook remotes dari awal supaya data selalu fresh
 task.spawn(function()
     task.wait(1)
     HookRemote("RE/FishCaught",                  "FishCaught")
@@ -320,33 +320,35 @@ end)
 
 -- =============================
 --    UB NOTIF QUEUE PROCESSOR
---    Khusus Ultra Blatant 3N
---    TIDAK menyentuh amBlantat
 -- =============================
 task.spawn(function()
+    local cachedNotifRemote = nil
+    local function getNotifRemote()
+        if not cachedNotifRemote or not cachedNotifRemote.Parent then
+            cachedNotifRemote = GetServerRemote("RE/ObtainedNewFishNotification")
+        end
+        return cachedNotifRemote
+    end
     while true do
         task.wait(0.05)
-        -- Hanya aktif saat UB nyala DAN amblatant MATI
-        -- (kalau amblatant nyala, amBlantat yang handle notif)
+        if not Config.UB.Active then
+            _G.NotifActive = 0
+            if #_G.NotifQueue > 0 then _G.NotifQueue = {} end
+        end
         if Config.UB.Active and not Config.amblatant then
             if #_G.NotifQueue > 0 and _G.NotifActive < MAX_NOTIF_ONSCREEN then
                 local args = table.remove(_G.NotifQueue, 1)
-                local xr_notif = GetServerRemote("RE/ObtainedNewFishNotification")
-                if xr_notif and #args > 0 then
-                    _G.NotifActive += 1
+                local xr_notif = getNotifRemote()
+                if xr_notif and type(args) == "table" and #args > 0 then
+                    _G.NotifActive = _G.NotifActive + 1
                     FireLocalEvent(xr_notif, unpack(args))
-                    -- Hitung durasi notif lalu kurangi counter
+                    local dur = getNotifDuration()
                     task.spawn(function()
-                        task.wait(getNotifDuration())
+                        task.wait(dur)
                         _G.NotifActive = math.max(0, _G.NotifActive - 1)
                     end)
                 end
                 task.wait(NOTIF_GAP)
-            end
-        else
-            -- Reset counter saat UB mati
-            if not Config.UB.Active then
-                _G.NotifActive = 0
             end
         end
     end
@@ -404,35 +406,30 @@ local function UB_init()
 end
 
 -- =============================
---    amBlantat: FishCaught 1x + Visual 1x + 3 Notif
---    TIDAK menggunakan NotifQueue
---    SISTEM TERPISAH dari UB Queue
+--    amBlantat Replay
 -- =============================
 local function replayAmblatantNotif()
     task.spawn(function()
         local xr_caught = GetServerRemote("RE/FishCaught")
         local xr_visual = GetServerRemote("RE/CaughtFishVisual")
-        local xr_notif  = GetServerRemote("RE/ObtainedNewFishNotification")
+        local xr_notif  = Events.fishNotif
 
-        -- FishCaught: 1x saja
         if xr_caught and #lastValidFishCaught > 0 then
             FireLocalEvent(xr_caught, unpack(lastValidFishCaught))
         end
         task.wait(0.03)
 
-        -- CaughtVisual: 1x saja
         if xr_visual and #lastValidCaughtVisual > 0 then
             FireLocalEvent(xr_visual, unpack(lastValidCaughtVisual))
         end
         task.wait(0.03)
 
-        -- Notif popup: Config.NotifCount kali (default 3)
-        -- dengan delay Config.NotifDelay antar notif
-        -- LANGSUNG FireLocalEvent, TIDAK lewat NotifQueue
         if xr_notif and #lastValidFishNotif > 0 then
             for i = 1, Config.NotifCount do
                 FireLocalEvent(xr_notif, unpack(lastValidFishNotif))
-                task.wait(Config.NotifDelay)
+                if i < Config.NotifCount then
+                    task.wait(Config.NotifDelay)
+                end
             end
         end
     end)
@@ -497,16 +494,17 @@ local function ub_loop()
                     end
                 end)
 
-                -- Tunggu konfirmasi server maksimal 1.5 detik
-                local waited = 0
-                while not isCaught and waited < 1.5 do
-                    task.wait(0.05)
-                    waited += 0.05
+                -- Tunggu server reply hanya untuk amBlantat
+                if Config.amblatant then
+                    local waited = 0
+                    while not isCaught and waited < 1.5 do
+                        task.wait(0.05)
+                        waited = waited + 0.05
+                    end
                 end
 
                 if isCaught then
                     isCaught = false
-                    -- Simpan snapshot data terbaru
                     if #(_G.SavedData.FishCaught or {}) > 0 then
                         lastValidFishCaught = deepCopyArr(_G.SavedData.FishCaught)
                     end
@@ -518,28 +516,21 @@ local function ub_loop()
                     end
 
                     if Config.amblatant then
-                        -- =====================
-                        -- MODE amBlantat:
-                        -- Replay 1x FishCaught + 1x Visual + 3x Notif langsung
-                        -- TIDAK masuk NotifQueue
-                        -- =====================
                         if #lastValidFishNotif > 0 then
                             replayAmblatantNotif()
                         end
                     else
-                        -- =====================
-                        -- MODE Ultra Blatant 3N:
-                        -- 1 notif masuk NotifQueue per catch
-                        -- Processor yang atur tampil di layar
-                        -- Efek akumulasi max 2 notif di layar
-                        -- =====================
                         if #lastValidFishNotif > 0 then
                             table.insert(_G.NotifQueue, deepCopyArr(lastValidFishNotif))
                         end
                     end
+                elseif not Config.amblatant then
+                    if #lastValidFishNotif > 0 then
+                        table.insert(_G.NotifQueue, deepCopyArr(lastValidFishNotif))
+                    end
                 end
             end
-            blatantFishCycleCount += 1
+            blatantFishCycleCount = blatantFishCycleCount + 1
         end)
         if not ok then
             warn("[MNA HUB] UB error: " .. tostring(err))
@@ -553,7 +544,6 @@ local function UB_start()
     UB_init()
     Config.UB.Active = true
     needCast = true
-    -- Reset queue saat mulai
     _G.NotifQueue  = {}
     _G.NotifActive = 0
     Config.UB.Stats.startTime = tick()
@@ -564,7 +554,6 @@ end
 local function UB_stop()
     if not Config.UB.Active then return end
     Config.UB.Active = false
-    -- Bersihkan queue
     _G.NotifQueue  = {}
     _G.NotifActive = 0
     safeFire(function()
@@ -615,12 +604,14 @@ end)
 
 -- =============================
 --    AUTO SELL
+--    FIX Bug 2: tambah logika mode Count
 -- =============================
 local function RunAutoSellLoop()
     if Tasks.AutoSellThread then
         pcall(function() task.cancel(Tasks.AutoSellThread) end)
     end
     Tasks.AutoSellThread = task.spawn(function()
+        local catchCounter = 0
         while Config.AutoSellState do
             if not Events.sell then
                 Events.sell = GetServerRemote("RF/SellAllItems")
@@ -630,9 +621,23 @@ local function RunAutoSellLoop()
                     break
                 end
             end
-            task.wait(math.max(Config.AutoSellValue, 5))
-            if Config.AutoSellState then
-                pcall(function() Events.sell:InvokeServer({}) end)
+            if Config.AutoSellMethod == "Delay" then
+                task.wait(math.max(Config.AutoSellValue, 5))
+                if Config.AutoSellState then
+                    pcall(function() Events.sell:InvokeServer({}) end)
+                end
+            elseif Config.AutoSellMethod == "Count" then
+                -- Tunggu sampai catch mencapai batas Count
+                local startCount = saveCount
+                while Config.AutoSellState and (saveCount - startCount) < Config.AutoSellValue do
+                    task.wait(1)
+                end
+                if Config.AutoSellState then
+                    pcall(function() Events.sell:InvokeServer({}) end)
+                    NotifySuccess("Auto Sell", "Sell! ("..Config.AutoSellValue.." catch)")
+                end
+            else
+                task.wait(5)
             end
         end
     end)
@@ -650,7 +655,7 @@ local function GetPlayerDataReplion()
 end
 
 local function GetFishNameAndRarity(item)
-    local name = item.Identifier or "Unknown"
+    local name   = item.Identifier or "Unknown"
     local rarity = item.Metadata and item.Metadata.Rarity or "COMMON"
     pcall(function()
         if ItemUtility then
@@ -676,7 +681,7 @@ local function RunAutoFavLoop(isUnfavorite)
     local targets = {}
     for _, item in ipairs(invData.Items) do
         local isAlreadyFav = (item.IsFavorite or item.Favorited)
-        local skip_item = isUnfavorite and not isAlreadyFav or not isUnfavorite and isAlreadyFav
+        local skip_item = (isUnfavorite and not isAlreadyFav) or (not isUnfavorite and isAlreadyFav)
         if not skip_item then
             local _, rarity = GetFishNameAndRarity(item)
             local mutation  = GetItemMutationString(item)
@@ -700,9 +705,6 @@ end
 
 -- =============================
 --    FISH NOTIF HOOK
---    Menangani notif dari server
---    + push ke NotifQueue untuk UB
---    + isCaught = true untuk amBlantat
 -- =============================
 task.spawn(function()
     task.wait(2)
@@ -714,14 +716,13 @@ task.spawn(function()
             lastTimeFishCaught = os.clock()
             isCaught = true
 
-            local dummyItem = { Id = args[1], Metadata = args[2] }
-            local fishName, fishRarity = GetFishNameAndRarity(dummyItem)
-            local mutation = GetItemMutationString(dummyItem)
-            local weight   = string.format("%.2fkg", (args[2] and args[2].Weight) or 0)
-
             if Config.CustomWebhook and Config.CustomWebhookUrl ~= "" then
                 pcall(function()
-                    local payload = HttpService:JSONEncode({
+                    local dummyItem  = { Id = args[1], Metadata = args[2] }
+                    local fishName, fishRarity = GetFishNameAndRarity(dummyItem)
+                    local mutation   = GetItemMutationString(dummyItem)
+                    local weight     = string.format("%.2fkg", (args[2] and args[2].Weight) or 0)
+                    local payload    = HttpService:JSONEncode({
                         username = "MNA HUB",
                         embeds = {{
                             title  = "Caught Fish!",
@@ -737,10 +738,10 @@ task.spawn(function()
                     })
                     if typeof(request) == "function" then
                         request({
-                            Url = Config.CustomWebhookUrl,
-                            Method = "POST",
+                            Url     = Config.CustomWebhookUrl,
+                            Method  = "POST",
                             Headers = { ["Content-Type"] = "application/json" },
-                            Body = payload
+                            Body    = payload
                         })
                     end
                 end)
@@ -750,6 +751,7 @@ task.spawn(function()
 end)
 
 -- Exclaim (legit fishing)
+-- FIX Bug 1: exclaimEvent sekarang ada di Events (sudah ditambah di loadRemotes)
 task.spawn(function()
     task.wait(2)
     if Events.exclaimEvent then
@@ -787,36 +789,31 @@ local Window = WindUI:CreateWindow({
     SideBarWidth = 170,
 })
 
--- TOMBOL BUKA/TUTUP
-local G2L = {}
-G2L["ToggleGui"] = Instance.new("ScreenGui")
-G2L["ToggleGui"].Parent = game:GetService("CoreGui")
-G2L["ToggleGui"].ResetOnSpawn = false
-G2L["ToggleGui"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+-- Tombol buka/tutup (bulat)
+local ToggleGui = Instance.new("ScreenGui")
+ToggleGui.Parent        = game:GetService("CoreGui")
+ToggleGui.ResetOnSpawn  = false
+ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-G2L["ToggleBtn"] = Instance.new("ImageButton")
-G2L["ToggleBtn"].Parent           = G2L["ToggleGui"]
-G2L["ToggleBtn"].Size             = UDim2.new(0, 48, 0, 48)
-G2L["ToggleBtn"].Position         = UDim2.new(0.05, 0, 0.04, 0)
-G2L["ToggleBtn"].BackgroundColor3 = Color3.fromRGB(60, 0, 180)
-G2L["ToggleBtn"].Image            = "rbxassetid://7733715400"
-G2L["ToggleBtn"].Draggable        = true
-G2L["ToggleBtn"].BorderSizePixel  = 0
+local ToggleBtn = Instance.new("ImageButton")
+ToggleBtn.Parent           = ToggleGui
+ToggleBtn.Size             = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position         = UDim2.new(0.05, 0, 0.04, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 180)
+ToggleBtn.Image            = "rbxassetid://7733715400"
+ToggleBtn.Draggable        = true
+ToggleBtn.BorderSizePixel  = 0
 
-local btnCorner = Instance.new("UICorner", G2L["ToggleBtn"])
-btnCorner.CornerRadius = UDim.new(0, 10)
+local btnCorner = Instance.new("UICorner", ToggleBtn)
+btnCorner.CornerRadius = UDim.new(1, 0)
 
-local btnStroke = Instance.new("UIStroke", G2L["ToggleBtn"])
+local btnStroke = Instance.new("UIStroke", ToggleBtn)
 btnStroke.Thickness = 2
 btnStroke.Color     = Color3.fromRGB(120, 50, 255)
 
 local windowVisible = true
-G2L["ToggleBtn"].MouseButton1Click:Connect(function()
-    if windowVisible then
-        Window:Close()
-    else
-        Window:Open()
-    end
+ToggleBtn.MouseButton1Click:Connect(function()
+    if windowVisible then Window:Close() else Window:Open() end
     windowVisible = not windowVisible
 end)
 
@@ -853,11 +850,11 @@ InfoTab:Button({
 })
 
 InfoTab:Keybind({
-    Title    = "MNA",
+    Title    = "Toggle UI",
     Desc     = "Shortcut buka/tutup UI",
-    Value    = "X1",
+    Value    = "RightShift",
     Callback = function(v)
-        Window:SetToggleKey(Enum.KeyCode[v])
+        pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end)
     end
 })
 
@@ -886,14 +883,10 @@ PlayersTab:Slider({
     Value = { Min = 50, Max = 500, Default = 50 },
     Step  = 10,
     Callback = function(val)
-        _G.CustomJumpPower = val
         local char = LocalPlayer.Character
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                hum.UseJumpPower = true
-                hum.JumpPower = val
-            end
+            if hum then hum.UseJumpPower = true; hum.JumpPower = val end
         end
     end
 })
@@ -1003,20 +996,21 @@ FishTab:Dropdown({
 
 FishTab:Input({
     Title       = "Complete Delay",
-    Placeholder = "2.7",
+    Placeholder = tostring(Config.UB.Settings.CompleteDelay),
     Callback    = function(t)
         local n = tonumber(t)
         if n and n >= 1 then
             Config.UB.Settings.CompleteDelay = n
             NotifySuccess("Delay", "Set: "..n.."s")
+        else
+            NotifyError("Delay", "Minimal 1 detik!")
         end
     end
 })
 
--- Slider multiplier durasi notif UB (baru)
 FishTab:Slider({
-    Title = "Complete Delay UB",
-    Desc  = "delaynya",
+    Title = "UB Notif Duration (x CompleteDelay)",
+    Desc  = "Makin tinggi = notif makin lama di layar",
     Value = { Min = 10, Max = 50, Default = 20 },
     Step  = 1,
     Callback = function(v)
@@ -1027,7 +1021,6 @@ FishTab:Slider({
 
 FishTab:Toggle({
     Title = "Ultra Blatant 3N",
-    Desc  = "cari settingannya",
     Value = false,
     Callback = function(v)
         needCast = true
@@ -1037,7 +1030,7 @@ FishTab:Toggle({
 
 FishTab:Toggle({
     Title = "amBlantat",
-    Desc  = "jangan terlalu berharap",
+    Desc  = "Visual catch real + 3 notif per catch",
     Value = false,
     Callback = function(v)
         Config.amblatant = v
@@ -1046,7 +1039,15 @@ FishTab:Toggle({
         HookRemote("RE/CaughtFishVisual",            "CaughtVisual")
         HookRemote("RE/ObtainedNewFishNotification", "FishNotif")
         needCast = true
-        onToggleUB(v)
+        -- FIX Bug 6: amBlantat OFF hanya matikan amBlantat
+        -- UB tetap jalan kalau sudah aktif sebelumnya
+        if v then
+            onToggleUB(true)
+        else
+            Config.amblatant = false
+            -- UB tetap aktif, hanya mode amBlantat dimatikan
+            NotifyWarning("amBlantat", "Dimatikan. UB masih jalan.")
+        end
     end
 })
 
@@ -1060,7 +1061,7 @@ FishTab:Divider()
 FishTab:Section({ Title = "Notif Config (amBlantat)", Icon = "bell" })
 
 FishTab:Slider({
-    Title = "Catch (jumlah notif amBlantat)",
+    Title = "Jumlah Notif amBlantat",
     Desc  = "Default 3 — tidak mempengaruhi UB",
     Value = { Min = 1, Max = 10, Default = 3 },
     Step  = 1,
@@ -1071,8 +1072,8 @@ FishTab:Slider({
 })
 
 FishTab:Slider({
-    Title = "Delay Notif amBlantat (0.01s - 1s)",
-    Desc  = "Default: 0.1s",
+    Title = "Delay Notif amBlantat (x0.01 detik)",
+    Desc  = "Default: 10 = 0.1 detik",
     Value = { Min = 0, Max = 100, Default = 10 },
     Step  = 1,
     Callback = function(v)
@@ -1095,16 +1096,20 @@ FishTab:Toggle({
             NotifySuccess("Legit", "Aktif!")
         else
             CallRemote(Events.UpdateAutoFishing, false)
+            NotifyWarning("Legit", "Dimatikan.")
         end
     end
 })
 
 FishTab:Input({
-    Title       = "Catch Delay",
+    Title       = "Catch Delay (detik)",
     Placeholder = "0.7",
     Callback    = function(t)
         local n = tonumber(t)
-        if n then Config.CatchDelay = n end
+        if n and n >= 0 then
+            Config.CatchDelay = n
+            NotifySuccess("Catch Delay", "Set: "..n.."s")
+        end
     end
 })
 
@@ -1114,6 +1119,8 @@ FishTab:Toggle({
     Callback = function(v)
         Config.autoFishing = v
         CallRemote(Events.UpdateAutoFishing, v)
+        if v then NotifySuccess("Perfection", "Aktif!")
+        else NotifyWarning("Perfection", "Dimatikan.") end
     end
 })
 
@@ -1131,11 +1138,15 @@ FishTab:Dropdown({
 })
 
 FishTab:Input({
-    Title       = "Sell Value (detik/count)",
+    Title       = "Sell Value",
+    Desc        = "Delay mode = detik | Count mode = jumlah catch",
     Placeholder = "50",
     Callback    = function(t)
         local n = tonumber(t)
-        if n and n > 0 then Config.AutoSellValue = n end
+        if n and n > 0 then
+            Config.AutoSellValue = n
+            NotifySuccess("Sell Value", "Set: "..n)
+        end
     end
 })
 
@@ -1151,6 +1162,7 @@ FishTab:Toggle({
             if Tasks.AutoSellThread then
                 pcall(function() task.cancel(Tasks.AutoSellThread) end)
             end
+            NotifyWarning("Auto Sell", "Dimatikan.")
         end
     end
 })
@@ -1161,6 +1173,78 @@ FishTab:Button({
         if Events.sell then
             pcall(function() Events.sell:InvokeServer({}) end)
             NotifySuccess("Sell", "Semua ikan dijual!")
+        else
+            NotifyError("Sell", "Remote tidak ditemukan!")
+        end
+    end
+})
+
+FishTab:Divider()
+FishTab:Section({ Title = "Auto Favorite", Icon = "star" })
+
+FishTab:Dropdown({
+    Title  = "Filter Rarity",
+    Values = { "Common","Uncommon","Rare","Epic","Legendary","Mythic","SECRET" },
+    Multi  = true,
+    Callback = function(v)
+        Config.SelectedRarities = type(v) == "table" and v or (v ~= "" and {v} or {})
+    end
+})
+
+FishTab:Dropdown({
+    Title  = "Filter Mutation",
+    Values = {
+        "Galaxy","Corrupt","Gemstone","Fairy Dust","Midnight","Color Burn",
+        "Holographic","Lightning","Radioactive","Ghost","Gold","Frozen",
+        "1x1x1x1","Stone","Sandy","Noob","Moon Fragment","Festive",
+        "Albino","Arctic Frost","Disco","Big","Giant","Sparkling","Crystalized","Shiny"
+    },
+    Multi  = true,
+    Callback = function(v)
+        Config.SelectedMutations = type(v) == "table" and v or (v ~= "" and {v} or {})
+    end
+})
+
+FishTab:Toggle({
+    Title    = "Auto Favorite",
+    Value    = false,
+    Callback = function(v)
+        Config.AutoFavoriteState = v
+        if v then
+            Tasks.AutoFavoriteThread = task.spawn(function()
+                while Config.AutoFavoriteState do
+                    RunAutoFavLoop(false)
+                    task.wait(5)
+                end
+            end)
+            NotifySuccess("Auto Favorite", "Aktif!")
+        else
+            if Tasks.AutoFavoriteThread then
+                pcall(function() task.cancel(Tasks.AutoFavoriteThread) end)
+            end
+            NotifyWarning("Auto Favorite", "Dimatikan.")
+        end
+    end
+})
+
+FishTab:Toggle({
+    Title    = "Auto Unfavorite",
+    Value    = false,
+    Callback = function(v)
+        Config.AutoUnfavoriteState = v
+        if v then
+            Tasks.AutoUnfavoriteThread = task.spawn(function()
+                while Config.AutoUnfavoriteState do
+                    RunAutoFavLoop(true)
+                    task.wait(5)
+                end
+            end)
+            NotifySuccess("Auto Unfavorite", "Aktif!")
+        else
+            if Tasks.AutoUnfavoriteThread then
+                pcall(function() task.cancel(Tasks.AutoUnfavoriteThread) end)
+            end
+            NotifyWarning("Auto Unfavorite", "Dimatikan.")
         end
     end
 })
@@ -1181,9 +1265,11 @@ MainTab:Dropdown({
 
 MainTab:Dropdown({
     Title  = "Target Enchant",
-    Values = { "Big Hunter 1","Cursed 1","Empowered 1","Glistening 1","Gold Digger 1",
-               "Leprechaun 1","Mutation Hunter 1","Prismatic 1","Reeler 1","Stargazer 1",
-               "Stormhunter 1","XPerienced 1","SECRET Hunter","Shark Hunter","Fairy Hunter 1" },
+    Values = {
+        "Big Hunter 1","Cursed 1","Empowered 1","Glistening 1","Gold Digger 1",
+        "Leprechaun 1","Mutation Hunter 1","Prismatic 1","Reeler 1","Stargazer 1",
+        "Stormhunter 1","XPerienced 1","SECRET Hunter","Shark Hunter","Fairy Hunter 1"
+    },
     Value  = "Big Hunter 1",
     Callback = function(v) _G.TargetEnchantBasic = v end
 })
@@ -1197,18 +1283,17 @@ MainTab:Toggle({
             task.spawn(function()
                 while _G.AutoEnchant do
                     pcall(function()
-                        local stones = {}
+                        if not PlayerData then return end
                         local inv = PlayerData:GetExpect("Inventory")
-                        if inv and inv.Items then
-                            local targetId = ({ ["Enchant Stones"]=10, ["Evolved Enchant Stone"]=558 })[_G.SelectedStoneType]
-                            for _, item in ipairs(inv.Items) do
-                                if item.Id == targetId then
-                                    table.insert(stones, item.UUID)
-                                end
-                            end
+                        if not inv or not inv.Items then return end
+                        local stoneIds = { ["Enchant Stones"]=10, ["Evolved Enchant Stone"]=558 }
+                        local targetId = stoneIds[_G.SelectedStoneType or "Enchant Stones"]
+                        local stoneUUID = nil
+                        for _, item in ipairs(inv.Items) do
+                            if item.Id == targetId then stoneUUID = item.UUID; break end
                         end
-                        if #stones > 0 and Events.equipItem and Events.activateAltar then
-                            pcall(function() Events.equipItem:FireServer(stones[1], "Enchant Stones") end)
+                        if stoneUUID and Events.equipItem and Events.activateAltar then
+                            pcall(function() Events.equipItem:FireServer(stoneUUID, "Enchant Stones") end)
                             task.wait(1.5)
                             pcall(function() Events.activateAltar:FireServer() end)
                         end
@@ -1217,6 +1302,8 @@ MainTab:Toggle({
                 end
             end)
             NotifySuccess("Auto Enchant", "Aktif!")
+        else
+            NotifyWarning("Auto Enchant", "Dimatikan.")
         end
     end
 })
@@ -1235,26 +1322,25 @@ MainTab:Button({
 MainTab:Divider()
 MainTab:Section({ Title = "Cave & Pirate", Icon = "map" })
 
-MainTab:Toggle({
-    Title    = "Auto Open Cave Wall",
-    Value    = false,
-    Callback = function(v)
-        _G.AutoCaveWall = v
-        if v then
-            task.spawn(function()
-                if not Events.searchItemPickedUp or not Events.gainAccessToMaze then
-                    NotifyError("Error", "Remote Cave tidak ditemukan!")
-                    return
-                end
-                for i = 1, 4 do
-                    pcall(function() Events.searchItemPickedUp:FireServer("TNT") end)
-                    task.wait(0.7)
-                end
-                task.wait(1.5)
-                pcall(function() Events.gainAccessToMaze:FireServer() end)
-                NotifySuccess("Cave", "Wall dibuka!")
-            end)
-        end
+-- FIX Bug 7: Cave Wall jadi Button bukan Toggle (logiknya sekali jalan)
+MainTab:Button({
+    Title    = "Open Cave Wall",
+    Desc     = "Plant TNT 4x lalu buka maze",
+    Callback = function()
+        task.spawn(function()
+            if not Events.searchItemPickedUp or not Events.gainAccessToMaze then
+                NotifyError("Error", "Remote Cave tidak ditemukan!")
+                return
+            end
+            NotifyInfo("Cave", "Menanam TNT...")
+            for i = 1, 4 do
+                pcall(function() Events.searchItemPickedUp:FireServer("TNT") end)
+                task.wait(0.7)
+            end
+            task.wait(1.5)
+            pcall(function() Events.gainAccessToMaze:FireServer() end)
+            NotifySuccess("Cave", "Wall dibuka!")
+        end)
     end
 })
 
@@ -1270,17 +1356,24 @@ MainTab:Toggle({
                         if not Events.claimPirateChest then return end
                         local storage = workspace:FindFirstChild("PirateChestStorage")
                         if not storage then return end
+                        local found = 0
                         for _, chest in ipairs(storage:GetChildren()) do
                             if chest.Name:match("%x%x%x%x%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%-%x%x%x%x%x%x%x%x%x%x%x%x") then
                                 pcall(function() Events.claimPirateChest:FireServer(chest.Name) end)
+                                found = found + 1
                                 task.wait(0.5)
                             end
+                        end
+                        if found > 0 then
+                            NotifySuccess("Pirate", "Claim "..found.." chest!")
                         end
                     end)
                     task.wait(3)
                 end
             end)
             NotifySuccess("Pirate", "Auto claim aktif!")
+        else
+            NotifyWarning("Pirate", "Dimatikan.")
         end
     end
 })
@@ -1296,6 +1389,8 @@ MainTab:Button({
             task.wait(1.5)
             equipRod()
             NotifySuccess("Crystal", "Dikonsumsi!")
+        else
+            NotifyError("Crystal", "Remote tidak ditemukan!")
         end
     end
 })
@@ -1306,6 +1401,10 @@ MainTab:Toggle({
     Callback = function(v)
         _G.AutoCrystal = v
         if v then
+            if not Events.ConsumeCaveCrystal then
+                NotifyError("Crystal", "Remote tidak ditemukan!")
+                return
+            end
             _G.crystalTask = task.spawn(function()
                 while _G.AutoCrystal do
                     pcall(function()
@@ -1320,7 +1419,73 @@ MainTab:Toggle({
         else
             if _G.crystalTask then
                 pcall(function() task.cancel(_G.crystalTask) end)
+                _G.crystalTask = nil
             end
+            NotifyWarning("Crystal", "Dimatikan.")
+        end
+    end
+})
+
+-- Totem
+MainTab:Divider()
+MainTab:Section({ Title = "Totem", Icon = "triangle" })
+
+local totemData = {
+    ["Pilih Totem"]=0, ["Luck Totem"]=1,
+    ["Mutation Totem"]=2, ["Shiny Totem"]=3, ["Love Totem"]=5
+}
+
+MainTab:Dropdown({
+    Title  = "Pilih Totem",
+    Values = { "Pilih Totem","Luck Totem","Mutation Totem","Shiny Totem","Love Totem" },
+    Value  = "Pilih Totem",
+    Callback = function(v)
+        Config.SelectedTotemID = totemData[v] or 0
+        NotifyInfo("Totem", "Dipilih: "..v)
+    end
+})
+
+MainTab:Toggle({
+    Title = "Auto Spawn Totem (1 jam)",
+    Value = false,
+    Callback = function(v)
+        Config.AutoTotem = v
+        if v then
+            Tasks.totemTask = task.spawn(function()
+                while Config.AutoTotem do
+                    pcall(function()
+                        local hrp = getHRP()
+                        if not hrp then return end
+                        local totemUUID = nil
+                        pcall(function()
+                            local replion = GetPlayerDataReplion()
+                            if not replion then return end
+                            local inv = replion:GetExpect("Inventory")
+                            if inv and inv.Totems then
+                                for _, item in ipairs(inv.Totems) do
+                                    if Config.SelectedTotemID == 0 or item.Id == Config.SelectedTotemID then
+                                        totemUUID = item.UUID; break
+                                    end
+                                end
+                            end
+                        end)
+                        if totemUUID and Events.SpawnTotem then
+                            pcall(function() Events.SpawnTotem:FireServer(totemUUID) end)
+                            task.wait(3)
+                            equipRod()
+                            NotifySuccess("Totem", "Spawn! Cooldown 1 jam.")
+                        end
+                    end)
+                    task.wait(3600)
+                end
+            end)
+            NotifySuccess("Auto Totem", "Aktif!")
+        else
+            if Tasks.totemTask then
+                pcall(function() task.cancel(Tasks.totemTask) end)
+                Tasks.totemTask = nil
+            end
+            NotifyWarning("Auto Totem", "Dimatikan.")
         end
     end
 })
@@ -1365,9 +1530,10 @@ local function getPlayerList()
 end
 
 local selectedPlayer = nil
-local playerDropdown = TpTab:Dropdown({
-    Title  = "Pilih Player",
-    Values = getPlayerList(),
+-- FIX Bug 3: hapus variable mati playerDropdown, langsung tanpa assign
+TpTab:Dropdown({
+    Title    = "Pilih Player",
+    Values   = getPlayerList(),
     Callback = function(v) selectedPlayer = v end
 })
 
@@ -1386,6 +1552,8 @@ TpTab:Button({
                 hrp.CFrame = tHRP.CFrame + Vector3.new(0, 3, 0)
                 NotifySuccess("Teleport", "Berhasil ke "..selectedPlayer)
             end
+        else
+            NotifyError("Error", "Character tidak ditemukan!")
         end
     end
 })
@@ -1421,10 +1589,12 @@ TpTab:Toggle({
                     task.wait(5)
                 end
             end)
+            NotifySuccess("Leviathan", "Mencari zona...")
         else
             if Tasks.levTask then
                 pcall(function() task.cancel(Tasks.levTask) end)
             end
+            NotifyWarning("Leviathan", "Dimatikan.")
         end
     end
 })
@@ -1448,12 +1618,21 @@ local wxNames = {}
 for n in pairs(weatherMap) do table.insert(wxNames, n) end
 table.sort(wxNames)
 
+-- FIX Bug 5: selectedWeathers pakai tabel proper
 local selectedWeathers = {}
 ShopTab:Dropdown({
     Title    = "Pilih Weather",
     Values   = wxNames,
     Multi    = true,
-    Callback = function(v) selectedWeathers = v or {} end
+    Callback = function(v)
+        if type(v) == "table" then
+            selectedWeathers = v
+        elseif type(v) == "string" and v ~= "" then
+            selectedWeathers = {v}
+        else
+            selectedWeathers = {}
+        end
+    end
 })
 
 ShopTab:Button({
@@ -1463,9 +1642,13 @@ ShopTab:Button({
             NotifyError("Error", "Pilih weather dulu!")
             return
         end
+        if not Events.BuyWeather then
+            NotifyError("Error", "Remote tidak ditemukan!")
+            return
+        end
         for _, name in ipairs(selectedWeathers) do
             local key = weatherMap[name]
-            if key and Events.BuyWeather then
+            if key then
                 pcall(function() Events.BuyWeather:InvokeServer(key) end)
                 task.wait(0.5)
             end
@@ -1480,18 +1663,28 @@ ShopTab:Toggle({
     Callback = function(v)
         _G.AutoWeather = v
         if v then
+            if #selectedWeathers == 0 then
+                NotifyError("Error", "Pilih weather dulu!")
+                _G.AutoWeather = false
+                return
+            end
             task.spawn(function()
                 while _G.AutoWeather do
-                    for _, name in ipairs(selectedWeathers) do
-                        local key = weatherMap[name]
-                        if key and Events.BuyWeather then
-                            pcall(function() Events.BuyWeather:InvokeServer(key) end)
+                    if Events.BuyWeather then
+                        for _, name in ipairs(selectedWeathers) do
+                            local key = weatherMap[name]
+                            if key then
+                                pcall(function() Events.BuyWeather:InvokeServer(key) end)
+                            end
+                            task.wait(0.5)
                         end
-                        task.wait(0.5)
                     end
                     task.wait(5)
                 end
             end)
+            NotifySuccess("Weather", "Aktif!")
+        else
+            NotifyWarning("Weather", "Dimatikan.")
         end
     end
 })
@@ -1513,14 +1706,17 @@ MiscTab:Toggle({
         if v then
             local char = LocalPlayer.Character
             if char then
-                local anim = char:FindFirstChildOfClass("Humanoid") and
-                             char:FindFirstChildOfClass("Humanoid"):FindFirstChildOfClass("Animator")
+                local hum  = char:FindFirstChildOfClass("Humanoid")
+                local anim = hum and hum:FindFirstChildOfClass("Animator")
                 if anim then
                     for _, t in ipairs(anim:GetPlayingAnimationTracks()) do t:Stop(0) end
                     local c = anim.AnimationPlayed:Connect(function(t) t:Stop(0) end)
                     table.insert(stopAnimConns, c)
                 end
             end
+            NotifyInfo("Anim", "Dimatikan.")
+        else
+            NotifyInfo("Anim", "Normal.")
         end
     end
 })
@@ -1547,9 +1743,10 @@ MiscTab:Toggle({
                 if e:IsA("PostEffect") then e.Enabled = false end
             end
             pcall(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end)
-            NotifySuccess("FPS", "Aktif! Shadows dimatikan")
+            NotifySuccess("FPS", "Aktif!")
         else
             pcall(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic end)
+            NotifyInfo("FPS", "Normal.")
         end
     end
 })
@@ -1606,6 +1803,10 @@ MiscTab:Input({
     Title       = "Webhook URL",
     Placeholder = "https://discord.com/api/webhooks/...",
     Callback    = function(t)
+        if not t or t == "" then
+            NotifyError("Webhook", "URL kosong!")
+            return
+        end
         Config.CustomWebhookUrl = t
         NotifySuccess("Webhook", "URL disimpan!")
     end
@@ -1619,7 +1820,7 @@ MiscTab:Button({
     Callback = function()
         local frames = 0
         local conn
-        conn = RunService.RenderStepped:Connect(function() frames += 1 end)
+        conn = RunService.RenderStepped:Connect(function() frames = frames + 1 end)
         task.wait(1)
         local fps = frames
         conn:Disconnect()
@@ -1630,7 +1831,7 @@ MiscTab:Button({
 })
 
 -- =============================
---    NOTIF AWAL
+--    NOTIF AKHIR
 -- =============================
 task.wait(0.5)
 WindUI:Notify({
