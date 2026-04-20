@@ -1223,7 +1223,7 @@ local SkinAnimation = (function()
                   or Instance.new("Animator", humanoid)
 
     local SkinDatabase = {
-        ["Eclipse"]         = "rbxassetid://107940819382815",
+        ["Katana"]         = "rbxassetid://107940819382815",
         ["HolyTrident"]     = "rbxassetid://128167068291703",
         ["SoulScythe"]      = "rbxassetid://82259219343456",
         ["OceanicHarpoon"]  = "rbxassetid://76325124055693",
@@ -1577,7 +1577,6 @@ local function createRealtimePanel()
     local pingLbl  = makeStat()
     local fpsLbl   = makeStat()
     local notifLbl = makeStat()
-    local timeLbl  = makeStat()
 
     local dragging, dragStart, startPos = false, nil, nil
     header.InputBegan:Connect(function(inp)
@@ -1641,7 +1640,6 @@ local function createRealtimePanel()
             pingLbl.Text  = "PING\n"..ping.."ms"
             fpsLbl.Text   = "FPS\n"..fpsCurrent
             notifLbl.Text = "NOTIF\n"..notif
-            timeLbl.Text  = "TIME\n"..fmtTime(tick()-sessionStart)
             colorStat(pingLbl,  ping,        120, 200)
             colorStat(fpsLbl,   fpsCurrent,   40,  90)
             colorStat(notifLbl, notif,          8,  20)
@@ -1732,11 +1730,11 @@ end)
 --    WINDUI WINDOW
 -- =============================
 local Window = WindUI:CreateWindow({
-    Title        = "MNA HUB (FREE)",
+    Title        = "MNA HUB",
     Icon         = "fish",
     Author       = "https://discord.gg/xjqJEnsY2",
     Folder       = "MNA HUB",
-    Size         = UDim2.fromOffset(580, 460),
+    Size         = UDim2.fromOffset(540, 420),
     Transparent  = true,
     Theme        = "Crimson",
     SideBarWidth = 170,
@@ -1764,7 +1762,7 @@ ToggleBtn.MouseButton1Click:Connect(function()
     windowVisible = not windowVisible
 end)
 
-Window:Tag({ Title = "V11.3", Color = Color3.fromRGB(200, 50, 50), Radius = 17 })
+Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 50, 50), Radius = 17 })
 Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 50, 50), Radius = 17 })
 
 WindUI:Notify({
@@ -1785,7 +1783,7 @@ InfoTab:Paragraph({
 })
 InfoTab:Button({
     Title    = "FIX REMOTE",
-    Desc     = "Reload semua remote",
+    Desc     = "Reload All remote",
     Callback = function()
         local l, f = loadRemotes()
         UB_init()
@@ -1794,7 +1792,7 @@ InfoTab:Button({
 })
 InfoTab:Keybind({
     Title    = "Toggle UI",
-    Desc     = "Shortcut buka/tutup UI",
+    Desc     = "Sift Buka/tutup Ui",
     Value    = "RightShift",
     Callback = function(v)
         pcall(function() Window:SetToggleKey(Enum.KeyCode[v]) end)
@@ -1808,7 +1806,7 @@ local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
 PlayersTab:Section({ Title = "Character", Icon = "move" })
 
 PlayersTab:Slider({
-    Title = "Walk Speed",
+    Title = "WALK SPEED",
     Value = { Min = 16, Max = 200, Default = 16 },
     Step  = 1,
     Callback = function(val)
@@ -1821,7 +1819,7 @@ PlayersTab:Slider({
 })
 
 PlayersTab:Slider({
-    Title = "Jump Power",
+    Title = "JUMP.POWER",
     Value = { Min = 50, Max = 500, Default = 50 },
     Step  = 10,
     Callback = function(val)
@@ -1834,7 +1832,7 @@ PlayersTab:Slider({
 })
 
 PlayersTab:Button({
-    Title    = "Reset Speed & Jump",
+    Title    = "RISET SPEED & JUMP",
     Callback = function()
         local char = LocalPlayer.Character
         if char then
@@ -1848,7 +1846,7 @@ PlayersTab:Button({
 PlayersTab:Section({ Title = "Abilities", Icon = "zap" })
 
 PlayersTab:Toggle({
-    Title    = "Infinite Jump",
+    Title    = "INFINITE JUMPI",
     Value    = false,
     Callback = function(v) _G.InfiniteJump = v end
 })
@@ -1864,7 +1862,7 @@ UserInputService.JumpRequest:Connect(function()
 end)
 
 PlayersTab:Toggle({
-    Title    = "Noclip",
+    Title    = "NOCLIP",
     Value    = false,
     Callback = function(v)
         _G.Noclip = v
@@ -1886,7 +1884,7 @@ PlayersTab:Toggle({
 
 local freezeConn, frozenCF
 PlayersTab:Toggle({
-    Title    = "Freeze Character",
+    Title    = "FREZE CHARACTER",
     Value    = false,
     Callback = function(v)
         _G.FreezeCharacter = v
@@ -1907,14 +1905,14 @@ PlayersTab:Toggle({
 PlayersTab:Section({ Title = "Visual Abilities", Icon = "eye" })
 
 PlayersTab:Toggle({
-    Title    = "Walk on Water",
-    Desc     = "Berjalan di atas air (fix CFrame)",
+    Title    = "WALK OL WATER",
+    Desc     = "berjalan Mengambang",
     Value    = false,
     Callback = function(v) setWalkOnWater(v) end
 })
 
 PlayersTab:Toggle({
-    Title    = "Hide NameTag",
+    Title    = "HIDE NAMA TAG",
     Desc     = "Sembunyikan nama di atas kepala",
     Value    = false,
     Callback = function(v) setHideNameTag(v) end
@@ -1923,15 +1921,15 @@ PlayersTab:Toggle({
 -- =============================
 --    TAB: FISHING
 -- =============================
-local FishTab = Window:Tab({ Title = "Fishing", Icon = "anchor" })
+local FishTab = Window:Tab({ Title = "FastFishing", Icon = "anchor" })
 FishTab:Section({ Title = "Ultra Blatant", Icon = "zap" })
 
 local rodSettings = {
-    ["1. 3 NOTIF (BETA)"]      = { CompleteDelay = 2.998 },
-    ["2. Diamond / Element"]  = { CompleteDelay = 3.7   },
-    ["3. (3) IS REAL"]          = { CompleteDelay = 2.890 },
+    ["1. 2 NOTIF "]      = { CompleteDelay = 2.998 },
+    ["2. Ultra 3N "]  = { CompleteDelay = 2.7988  },
+    ["3. DM/Element "]          = { CompleteDelay = 2.890 },
     ["4. GF / Bambu"]         = { CompleteDelay = 3.7   },
-    ["5. Ares/Angler/Astral"] = { CompleteDelay = 4.8   },
+    ["5. 4Notif (Visual)"] = { CompleteDelay = 4.8   },
 }
 local rodNames = {}
 for n in pairs(rodSettings) do table.insert(rodNames, n) end
@@ -1948,7 +1946,7 @@ FishTab:Dropdown({
 })
 
 FishTab:Input({
-    Title       = "Complete Delay",
+    Title       = "COMPLETE DELAY",
     Placeholder = tostring(Config.UB.Settings.CompleteDelay),
     Callback    = function(t)
         local n = tonumber(t)
@@ -1962,8 +1960,8 @@ FishTab:Input({
 })
 
 FishTab:Slider({
-    Title = "UB Notif Duration (x CompleteDelay)",
-    Desc  = "Makin tinggi = notif makin lama di layar",
+    Title = "UB Notif (Beta)",
+    Desc  = "Atur Sesuka Delay Notif",
     Value = { Min = 10, Max = 50, Default = 20 },
     Step  = 1,
     Callback = function(v)
@@ -1973,7 +1971,7 @@ FishTab:Slider({
 })
 
 FishTab:Toggle({
-    Title = "Ultra Blatant 3N",
+    Title = "BLANTANT (BETA)",
     Value = false,
     Callback = function(v)
         needCast = true
@@ -1982,8 +1980,8 @@ FishTab:Toggle({
 })
 
 FishTab:Toggle({
-    Title = "amBlantat",
-    Desc  = "Visual catch real + N notif per catch",
+    Title = "AMBLANTANT (20N)",
+    Desc  = "ytta aja sih",
     Value = false,
     Callback = function(v)
         Config.amblatant = v
@@ -2002,7 +2000,7 @@ FishTab:Toggle({
 })
 
 FishTab:Toggle({
-    Title    = "Random Cast (Anti-Detect)",
+    Title    = "RANDOM CAST ",
     Value    = false,
     Callback = function(v) Config.antiOKOK = v end
 })
@@ -2011,8 +2009,8 @@ FishTab:Divider()
 FishTab:Section({ Title = "Instant Bobber", Icon = "zap" })
 
 FishTab:Toggle({
-    Title    = "Instant Bobber",
-    Desc     = "Bobber langsung muncul di posisi cast",
+    Title    = "INSTANT BOBBER",
+    Desc     = "Bobber Langsung Muncul",
     Value    = false,
     Callback = function(v)
         Config.InstantBobber = v
@@ -2027,7 +2025,7 @@ FishTab:Section({ Title = "Custom Skin Animation", Icon = "sparkles" })
 
 FishTab:Paragraph({
     Title   = "Info",
-    Content = "Ganti animasi FishCaught dengan skin rod custom. Pilih skin lalu aktifkan."
+    Content = "Pilih skin lalu aktifkan."
 })
 
 -- FIX: rename
@@ -2037,9 +2035,9 @@ local ubSkinNames = {
 }
 
 FishTab:Dropdown({
-    Title  = "Pilih Skin Animasi",
+    Title  = "ANIMATION SKIN",
     Values = ubSkinNames,
-    Value  = "Eclipse",
+    Value  = "Katana",
     Callback = function(v)
         Config.SelectedSkinId = v
         SkinAnimation.Switch(v)
@@ -2047,7 +2045,7 @@ FishTab:Dropdown({
 })
 
 FishTab:Toggle({
-    Title    = "Enable Skin Animation",
+    Title    = "ENABLE SKIN ANIMATION",
     Desc     = "Aktifkan animasi catch custom",
     Value    = false,
     Callback = function(v)
@@ -2067,8 +2065,8 @@ FishTab:Divider()
 FishTab:Section({ Title = "Notif Config (amBlantat)", Icon = "bell" })
 
 FishTab:Slider({
-    Title = "Jumlah Notif amBlantat",
-    Desc  = "Default 3 — tidak mempengaruhi UB 3N",
+    Title = "UB NOTIF amBLANTANT",
+    Desc  = "Default 3",
     Value = { Min = 1, Max = 10, Default = 3 },
     Step  = 1,
     Callback = function(v)
@@ -2078,8 +2076,8 @@ FishTab:Slider({
 })
 
 FishTab:Slider({
-    Title = "Delay Notif amBlantat (x0.01 detik)",
-    Desc  = "Default: 10 = 0.1 detik",
+    Title = "Delay UBAmblantant",
+    Desc  = "Default: 10",
     Value = { Min = 0, Max = 100, Default = 10 },
     Step  = 1,
     Callback = function(v)
@@ -2092,7 +2090,7 @@ FishTab:Divider()
 FishTab:Section({ Title = "Legit Fishing", Icon = "shield-check" })
 
 FishTab:Toggle({
-    Title    = "Legit Auto Catch",
+    Title    = "Legit",
     Value    = false,
     Callback = function(v)
         Config.AutoCatch = v
@@ -2108,7 +2106,7 @@ FishTab:Toggle({
 })
 
 FishTab:Input({
-    Title       = "Catch Delay (detik)",
+    Title       = "Catch Delay",
     Placeholder = "0.7",
     Callback    = function(t)
         local n = tonumber(t)
@@ -2144,7 +2142,7 @@ FishTab:Dropdown({
 })
 
 FishTab:Input({
-    Title       = "Sell Value",
+    Title       = "Sell (Vallue)",
     Desc        = "Delay = detik | Count = jumlah catch",
     Placeholder = "50",
     Callback    = function(t)
@@ -2243,7 +2241,7 @@ FishTab:Toggle({
 -- =============================
 --    TAB: EASTER
 -- =============================
-local EasterTab = Window:Tab({ Title = "Easter", Icon = "gift" })
+local EasterTab = Window:Tab({ Title = "TP Event", Icon = "gift" })
 EasterTab:Section({ Title = "Auto Egg Hunt", Icon = "search" })
 
 EasterTab:Paragraph({
@@ -2479,7 +2477,7 @@ MainTab:Button({
 
 MainTab:Button({
     Title    = "Fix Rod",
-    Desc     = "Gunakan jika rod bug atau tidak bisa ganti skin",
+    Desc     = "Gunakan Kalo Rod/Skin Tidak Bisa Di Ganti",
     Callback = function()
         local done = false
         if Events.CancelFishing then
@@ -2499,7 +2497,7 @@ MainTab:Section({ Title = "Cave & Pirate", Icon = "map" })
 
 MainTab:Button({
     Title    = "Open Cave Wall",
-    Desc     = "Plant TNT 4x lalu buka maze",
+    Desc     = "TNT8",
     Callback = function()
         task.spawn(function()
             if not Events.searchItemPickedUp or not Events.gainAccessToMaze then
@@ -3008,7 +3006,7 @@ MiscTab:Divider()
 MiscTab:Section({ Title = "Ping Panel", Icon = "bar-chart" })
 
 MiscTab:Toggle({
-    Title    = "Ping Panel (pojok kanan atas)",
+    Title    = "Ping Panel ",
     Desc     = "Ping + FPS realtime",
     Value    = false,
     Callback = function(v)
@@ -3018,11 +3016,11 @@ MiscTab:Toggle({
 })
 
 MiscTab:Divider()
-MiscTab:Section({ Title = "Realtime Stats Panel", Icon = "bar-chart-2" })
+MiscTab:Section({ Title = "PING PANEL", Icon = "bar-chart-2" })
 
 MiscTab:Toggle({
-    Title    = "Realtime Stats Panel",
-    Desc     = "Panel draggable: Ping | FPS | Notif | Timer",
+    Title    = "Realtime Panel",
+    Desc     = "Panel",
     Value    = false,
     Callback = function(v)
         if v then
@@ -3036,7 +3034,7 @@ MiscTab:Toggle({
 })
 
 MiscTab:Button({
-    Title    = "Show FPS & Ping (sekali)",
+    Title    = "Show FPS & Ping ",
     Callback = function()
         local frames, conn = 0, nil
         conn = RunService.RenderStepped:Connect(function() frames = frames + 1 end)
