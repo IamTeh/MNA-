@@ -1741,10 +1741,16 @@ local Window = WindUI:CreateWindow({
     SideBarWidth = 180,
 })
 
-local ToggleGui = Instance.new("ScreenGui")
-ToggleGui.Parent = game:GetService("CoreGui")
-ToggleGui.ResetOnSpawn = false
-ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local ToggleBtn = Instance.new("ImageButton", ToggleGui)
+ToggleBtn.Size             = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position         = UDim2.new(0.05, 0, 0.04, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 180)
+ToggleBtn.Image            = "rbxassetid://7733715400"
+ToggleBtn.Draggable        = true
+ToggleBtn.BorderSizePixel  = 0
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
+local btnStroke = Instance.new("UIStroke", ToggleBtn)
+btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(120, 50, 255)
 
 local windowVisible = true
 ToggleBtn.MouseButton1Click:Connect(function()
@@ -1752,8 +1758,8 @@ ToggleBtn.MouseButton1Click:Connect(function()
     windowVisible = not windowVisible
 end)
 
-Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(250, 20, 25), Radius = 17 })
-Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(250, 20, 25), Radius = 17 })
+Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
+Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 
 WindUI:Notify({
     Title    = "MNA HUB",
