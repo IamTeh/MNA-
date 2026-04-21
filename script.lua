@@ -1755,17 +1755,16 @@ ToggleBtn.Draggable        = true
 ToggleBtn.BorderSizePixel  = 0
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
 local btnStroke = Instance.new("UIStroke", ToggleBtn)
-btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(120, 50, 255)
+btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(200, 0, 50)
+
+local windowVisible = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    if windowVisible then Window:Close() else Window:Open() end
+    windowVisible = not windowVisible
+end)
 
 Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
-
-WindUI:Notify({
-    Title    = "MNA HUB",
-    Content  = "Loaded! Remotes: " .. loadedCount,
-    Duration = 4,
-    Icon     = "rbxassetid://111326404819563",
-})
 
 -- =============================
 --    TAB: INFO
