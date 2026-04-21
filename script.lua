@@ -1766,6 +1766,13 @@ end)
 Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 
+WindUI:Notify({
+    Title    = "MNA HUB",
+    Content  = "Loaded! Remotes: " .. loadedCount,
+    Duration = 4,
+    Icon     = "rbxassetid://111326404819563",
+})
+
 -- =============================
 --    TAB: INFO
 -- =============================
