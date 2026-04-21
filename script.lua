@@ -1746,25 +1746,14 @@ ToggleGui.Parent = game:GetService("CoreGui")
 ToggleGui.ResetOnSpawn = false
 ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-local ToggleBtn = Instance.new("ImageButton", ToggleGui)
-ToggleBtn.Size             = UDim2.new(0, 48, 0, 48)
-ToggleBtn.Position         = UDim2.new(0.05, 0, 0.04, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ToggleBtn.Image            = "rbxassetid://111326404819563"
-ToggleBtn.Draggable        = true
-ToggleBtn.BorderSizePixel  = 0
-Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
-local btnStroke = Instance.new("UIStroke", ToggleBtn)
-btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(120, 50, 255)
-
 local windowVisible = true
 ToggleBtn.MouseButton1Click:Connect(function()
     if windowVisible then Window:Close() else Window:Open() end
     windowVisible = not windowVisible
 end)
 
-Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 50, 50), Radius = 17 })
-Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 50, 50), Radius = 17 })
+Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(250, 20, 25), Radius = 17 })
+Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(250, 20, 25), Radius = 17 })
 
 WindUI:Notify({
     Title    = "MNA HUB",
