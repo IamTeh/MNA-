@@ -1757,12 +1757,6 @@ Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
 local btnStroke = Instance.new("UIStroke", ToggleBtn)
 btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(120, 50, 255)
 
-local windowVisible = true
-ToggleBtn.MouseButton1Click:Connect(function()
-    if windowVisible then Window:Close() else Window:Open() end
-    windowVisible = not windowVisible
-end)
-
 Window:Tag({ Title = "V11.4", Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 Window:Tag({ Title = "FREE",  Color = Color3.fromRGB(200, 0, 50), Radius = 17 })
 
