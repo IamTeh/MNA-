@@ -1738,7 +1738,7 @@ local Window = WindUI:CreateWindow({
     Size         = UDim2.fromOffset(580, 460),
     Transparent  = true,
     Theme        = "Crimson",
-    SideBarWidth = 170,
+    SideBarWidth = 180,
 })
 
 local ToggleGui = Instance.new("ScreenGui")
@@ -1749,7 +1749,7 @@ ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local ToggleBtn = Instance.new("ImageButton", ToggleGui)
 ToggleBtn.Size             = UDim2.new(0, 48, 0, 48)
 ToggleBtn.Position         = UDim2.new(0.05, 0, 0.04, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 180)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleBtn.Image            = "rbxassetid://111326404819563"
 ToggleBtn.Draggable        = true
 ToggleBtn.BorderSizePixel  = 0
@@ -3073,7 +3073,7 @@ MiscTab:Input({
 task.wait(0.5)
 WindUI:Notify({
     Title    = "MNA HUB",
-    Content  = "Semua fitur loaded! amBlantat: "..Config.NotifCount.."x per catch",
+    Content  = "Selamat Menikmati"..Config.NotifCount.."Script KAmi",
     Duration = 5,
     Icon     = "check-circle",
 })
