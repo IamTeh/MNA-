@@ -1746,6 +1746,13 @@ ToggleGui.Parent = game:GetService("CoreGui")
 ToggleGui.ResetOnSpawn = false
 ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+local ToggleBtn = Instance.new("ImageButton", ToggleGui)
+ToggleBtn.Size             = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position         = UDim2.new(0.05, 0, 0.04, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleBtn.Image            = "rbxassetid://7733715400"
+ToggleBtn.Draggable        = true
+ToggleBtn.BorderSizePixel  = 0
 Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
 local btnStroke = Instance.new("UIStroke", ToggleBtn)
 btnStroke.Thickness = 2; btnStroke.Color = Color3.fromRGB(120, 50, 255)
