@@ -1019,8 +1019,10 @@ end)()
 -- ============================================================
 --  AUTO EVENT TP
 -- ============================================================
-local autoEventTPEnabled=false, autoEventThread=nil
-local createdEventPlatform=nil, selectedAutoEvents={}
+local autoEventTPEnabled = false
+local autoEventThread    = nil
+local createdEventPlatform = nil
+local selectedAutoEvents   = {}
 
 local eventTPData = {
     ["Worm Hunt"]={
